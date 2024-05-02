@@ -1,7 +1,8 @@
-# pragma once
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
-
+#include <cmath>
+#include "DungeonMaze.h"
 class Pacman{
 public:
     int x;
@@ -12,54 +13,71 @@ public:
     char dir;
     int curr_frame_x;
     int curr_frame_y;
-    int last_frame;
     float speed;
     sf :: Texture text;
     sf :: Sprite sprite;
-    Pacman(){
+    Pacman(int x = 0, int y = 0){
         text.loadFromFile("./Sprites/PacMan.png");
         sprite.setTexture(text);
         sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/2.0, text.getSize().y/4.0));
         left = top = 0;
         curr_frame_x = 0;
         curr_frame_y = 0;
-        x = 0;
-        y = 0;
+        this->x = 1;
+        this->y = 1;
         timer = 0;
         dir = 'l';
-        sprite.setPosition(50,50);
-        speed = 0.4;
+        sprite.setPosition(x,y);
+        speed = 1;
     }
     void move(char pressed_dir){
+        std :: cout<<"x: "<<x<<std::endl;
         switch (pressed_dir){
         case 'r':
+            if(x+1 > dungeon.size() - 2){
+                return;
+            }
+            if((sprite.getPosition().x -150) >= (x * 25)){
+                x++;
+            }
             move_mouth();
-            x++;
             sprite.move(speed,0);
             curr_frame_y = 0;
             break;
         case 'l':
+            if(x-1 < 0){
+                return;
+            }   
+            if((sprite.getPosition().x -150) <= (x * 25)){
+                x--;
+            }
             move_mouth();
-            x--;
-            sprite.move(-0.6,0);
+            sprite.move(-1 * speed,0);
             curr_frame_y = 1;
             break;
         case 'u':
+            if(y-1 < 0){
+                return;
+            }  
+            if((sprite.getPosition().y -100) <= (y * 25)){
+                y--;
+            }
             move_mouth();
-            y--;
             curr_frame_y = 2;
-            sprite.move(0,-0.6);
+            sprite.move(0,-1 * speed);
             break;
         case 'd':
+            if(y+1 > dungeon[0].size()){
+                return;
+            }  
             move_mouth();
-            y++;
+            if((sprite.getPosition().y -100) >= (y * 25)){
+                y++;
+            }
             curr_frame_y = 3;
-            sprite.move(0,0.6);
+            sprite.move(0,speed);
             break;
         default:
-            left = (text.getSize().x / 2.0);
-            top = (text.getSize().y / 4.0) * curr_frame_y;
-            sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 2.0, text.getSize().y / 4.0));
             break;
         }
 
