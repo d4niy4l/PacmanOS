@@ -13,6 +13,7 @@ public:
     int curr_frame_x;
     int curr_frame_y;
     int last_frame;
+    float speed;
     sf :: Texture text;
     sf :: Sprite sprite;
     Pacman(){
@@ -27,13 +28,14 @@ public:
         timer = 0;
         dir = 'l';
         sprite.setPosition(50,50);
+        speed = 0.4;
     }
     void move(char pressed_dir){
         switch (pressed_dir){
         case 'r':
             move_mouth();
             x++;
-            sprite.move(0.6,0);
+            sprite.move(speed,0);
             curr_frame_y = 0;
             break;
         case 'l':
