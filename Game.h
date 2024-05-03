@@ -3,7 +3,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Pacman.h"
-#include "DungeonMaze.h"
+#include "Maze.h"
 using namespace std;
 
 class Game{
@@ -11,11 +11,10 @@ class Game{
 private:
 public:
     void start_game(){
-        sf :: Texture tile_texts;
-        tile_texts.loadFromFile("./Sprites/Tile.png");
         sf::RenderWindow window(sf::VideoMode(1000, 1000), "PacmanOS");
         sf :: Clock clock;
         Pacman pacman(175, 125);
+        Maze maze("dungeon","./Sprites/Tile.png");
         while (window.isOpen())
         {
             window.clear();
@@ -29,25 +28,17 @@ public:
                     window.close();
                 
             }
-
-            if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
-                pacman.move('l');    
-            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::D)) 
-                pacman.move('r');  
-            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::W))
-                pacman.move('u');    
-            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
-                pacman.move('d');
-            for(int i = 0;i<dungeon.size();i++){
-                for(int j = 0;j<dungeon[i].size();j++){\
-                    if(dungeon[i][j] == 0){
-                        sf :: Sprite tile;
-                        tile.setTexture(tile_texts);
-                        tile.setPosition(j*25 + 150,i*25 + 100 );
-                        window.draw(tile);
-                    }
-                }
+            if(maze.descended){
+                if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
+                    pacman.move('l',maze);    
+                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::D)) 
+                    pacman.move('r',maze);  
+                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::W))
+                    pacman.move('u',maze);    
+                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
+                    pacman.move('d',maze);
             }
+            maze.draw(window);
             pacman.draw(window);
             window.display();
         }

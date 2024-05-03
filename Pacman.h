@@ -1,8 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <cmath>
-#include "DungeonMaze.h"
+#include <cmath> 
+#include "Maze.h"
 class Pacman{
 public:
     int x;
@@ -30,14 +30,16 @@ public:
         sprite.setPosition(x,y);
         speed = 1;
     }
-    void move(char pressed_dir){
-        std :: cout<<"x: "<<x<<std::endl;
+    void move(char pressed_dir, Maze& maze){
         switch (pressed_dir){
         case 'r':
-            if(x+1 > dungeon.size() - 2){
+            if(x+1 > maze[0].size() - 1){
                 return;
             }
-            if((sprite.getPosition().x -150) >= (x * 25)){
+            else if(maze[y][x+1] == 0){
+                return;
+            }
+            if((sprite.getPosition().x -150) > (x * 25)){
                 x++;
             }
             move_mouth();
@@ -45,10 +47,10 @@ public:
             curr_frame_y = 0;
             break;
         case 'l':
-            if(x-1 < 0){
+            if(x-1 <= 0){
                 return;
             }   
-            if((sprite.getPosition().x -150) <= (x * 25)){
+            if((sprite.getPosition().x -150) < (x * 25)){
                 x--;
             }
             move_mouth();
@@ -67,7 +69,7 @@ public:
             sprite.move(0,-1 * speed);
             break;
         case 'd':
-            if(y+1 > dungeon[0].size()){
+            if(y + 1 > dungeon.size()-1){
                 return;
             }  
             move_mouth();
