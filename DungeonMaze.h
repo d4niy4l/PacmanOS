@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+const int maze_offset_x = 150;
+const int maze_offset_y = 100;
 std :: vector< std :: vector<int>> dungeon = {
 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},

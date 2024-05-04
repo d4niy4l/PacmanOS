@@ -1,25 +1,36 @@
 #pragma once
-#include <vector>
 #include <iostream>
+#include <array>
 #include <SFML/Graphics.hpp>
 #include "Pacman.h"
+#include "Ghost.h"
 #include "Maze.h"
 using namespace std;
 
 class Game{
-    
+    Pacman pacman;
+    Maze maze;
+    array<Ghost,4> ghosts;
 private:
 public:
+    Game() : maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png"){
+        ghosts[0].initialize("Blinky");
+        ghosts[1].initialize("Pinky");
+        ghosts[2].initialize("Inky");
+        ghosts[3].initialize("Clyde");
+    }
     void start_game(){
-        sf::RenderWindow window(sf::VideoMode(1000, 1000), "PacmanOS");
+        sf::RenderWindow window(sf::VideoMode(1000, 800), "PacmanOS");
         sf :: Clock clock;
-        Pacman pacman(25 + 150, 25 + 100);
-        Maze maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png");
+        char pressed_dir;
         while (window.isOpen())
         {
             window.clear();
             float time = clock.getElapsedTime().asSeconds();
             pacman.timer += time;
+            for(int i = 0;i<ghosts.size();i++){
+                ghosts[i].timer += time;
+            }
             clock.restart();
             sf::Event event;
 
@@ -31,18 +42,29 @@ public:
             }
             if(maze.descended){
                 if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
-                    pacman.move('l',maze);    
+                    pressed_dir = 'l';   
                 else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::D)) 
-                    pacman.move('r',maze);  
+                    pressed_dir = 'r';
                 else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::W))
-                    pacman.move('u',maze);    
+                    pressed_dir = 'u';
                 else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
-                    pacman.move('d',maze);
+                    pressed_dir = 'd';
             }
             maze.draw(window);
-            pacman.draw(window);
+            if(maze.descended == true){
+                pacman.draw(window);
+                for(int i = 0;i<ghosts.size();i++){
+                    ghosts[i].draw(window);
+                }
+                
+            }
+            pacman.move(pressed_dir,maze);
             window.display();
         }
     }
+
+    private:
+    
+    
 
 };

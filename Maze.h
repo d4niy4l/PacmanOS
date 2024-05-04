@@ -23,15 +23,15 @@ class Maze{
                 if(maze[i][j] == 0){
                     sprites[i].push_back(sf :: Sprite(tile_text));
                     if(i < 11){
-                        sprites[i][j].setPosition(j * 25 + 150, i* 25);
+                        sprites[i][j].setPosition(j * 25 + maze_offset_x, i* 25);
                     }
                     else{
-                        sprites[i][j].setPosition(j * 25 + 150 , i* 25 + 200);
+                        sprites[i][j].setPosition(j * 25 + maze_offset_x, i* 25 + 2*maze_offset_y);
                     }
                 }
                 else if(maze[i][j] == 2){
                     sprites[i].push_back(sf :: Sprite(platform_text));
-                    sprites[i][j].setPosition(j * 25 + 150, i* 25);
+                    sprites[i][j].setPosition(j * 25 + maze_offset_x, i* 25);
                 }
                 else{
                     sprites[i].push_back(sf :: Sprite());
@@ -46,16 +46,16 @@ class Maze{
                 for(int j = 0 ;j<maze[i].size();j++){
                     if(maze[i][j] == 0|| maze[i][j] == 2){
                         if(i < 11){
-                            if(sprites[i][j].getPosition().y < i * 25 + 100){
-                                sprites[i][j].move(0, 0.1);
+                            if(sprites[i][j].getPosition().y < i * 25 + maze_offset_y){
+                                sprites[i][j].move(0, 0.2);
                                 window.draw(sprites[i][j]);
                                 descend = true;
                             }
                             
                         }
                         else{
-                            if(sprites[i][j].getPosition().y > i * 25 + 100){
-                                sprites[i][j].move(0, -0.1);
+                            if(sprites[i][j].getPosition().y > i * 25 + maze_offset_y){
+                                sprites[i][j].move(0, -0.2);
                                 window.draw(sprites[i][j]);
                                 descend = true;
                             }

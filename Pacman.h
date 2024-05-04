@@ -16,71 +16,66 @@ public:
     float speed;
     sf :: Texture text;
     sf :: Sprite sprite;
-    Pacman(int x = 0, int y = 0){
+    Pacman(){
         text.loadFromFile("./Sprites/PacMan.png");
         sprite.setTexture(text);
         sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/2.0, text.getSize().y/4.0));
         left = top = 0;
         curr_frame_x = 0;
         curr_frame_y = 0;
-        this->x = 25;
-        this->y = 25;
+        this->x = 25*11;
+        this->y = 25*14;
         timer = 0;
-        dir = 'l';
-        sprite.setPosition(x,y);
-        //sprite.setOrigin(sprite.getPosition().x/2,sprite.getPosition().y/2);
+        dir = ' ';
+        sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 1;
     }
-    void move(char pressed_dir, Maze& maze){
-        system("clear");
-        cout<<"x: "<<x<<endl;
-        cout<<"y: "<<y<<endl;
+    void move(char curr_dir, Maze& maze){
         int gridRow = int((y) / 25);
         int gridCol = int((x) / 25);
         int gridX = gridCol * 25;
         int gridY = gridRow * 25;
         bool isRowAligned = abs(gridY - y) < 5;
         bool isColAligned = abs(gridX - x) < 5;
-        switch (pressed_dir){
+        bool canSwitch = can_change(curr_dir,isRowAligned,isColAligned,maze,gridRow,gridCol);
+        if(canSwitch == false){
+            curr_dir = dir;
+        }
+        switch (curr_dir){
         case 'r':
-            isRowAligned = abs(gridY - y) < 5;
-            isColAligned = abs(gridX - x) < 5;
-            if(!isRowAligned || maze[gridRow][gridCol + 1] == 0)
+            if(!isRowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 2))
                 break;
-            sprite.setPosition(x + 150, gridY + 100);
+            sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
             sprite.move(speed,0);
             x+= speed;
             curr_frame_y = 0;
+            
             break;
         case 'l':
-            isRowAligned = abs(gridY - y) < 5;
-            isColAligned = abs(gridX - x) < 5;
-            if(!isRowAligned || (isColAligned && maze[gridRow][gridCol - 1] == 0))
+            if(!isRowAligned || (isColAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)))
                 break;
-            sprite.setPosition(x + 150, gridY + 100);
+            sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
             sprite.move(-1 * speed,0);
             x-=speed;
             curr_frame_y = 1;
             break;
         case 'u':
-            isRowAligned = abs(gridY - y) < 5;
-            isColAligned = abs(gridX - x) < 5;
-            if(!isColAligned || (isRowAligned && maze[gridRow - 1][gridCol] == 0))
+            
+            if(!isColAligned || (isRowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 2)))
                 break;
-            sprite.setPosition(gridX + 150, y + 100);
+            sprite.setPosition(gridX + maze_offset_x, y + maze_offset_y);
             move_mouth();
             curr_frame_y = 2;
             y -= speed;
             sprite.move(0,-1 * speed);
             break;
         case 'd':
-            isRowAligned = abs(gridY - y) < 5;
-            isColAligned = abs(gridX - x) < 5;
-            if(!isColAligned|| maze[gridRow + 1][gridCol] == 0)
+         
+            if(!isColAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 2))
                 break;
-            sprite.setPosition(gridX + 150,y + 100 );
+            sprite.setPosition(gridX + maze_offset_x,y + maze_offset_y );
             move_mouth();
             y += speed;
             curr_frame_y = 3;
@@ -89,8 +84,14 @@ public:
         default:
             break;
         }
-
+        dir = curr_dir ;
     }
+
+    void draw(sf :: RenderWindow& window){
+        window.draw(sprite);
+    }
+
+    private:
     void move_mouth(){
         if(timer > 0.15){
             timer = 0;
@@ -103,8 +104,21 @@ public:
         top = (text.getSize().y / 4.0) * curr_frame_y;
         sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 2.0, text.getSize().y / 4.0));
     }
-
-    void draw(sf :: RenderWindow& window){
-        window.draw(sprite);
+    bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
+        if(dir == 'u'){
+            return !(!colAligned || (rowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 2)));
+        }
+        else if(dir == 'd'){
+            return !(!colAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 2));
+        }
+        else if(dir == 'l'){
+            return !(!rowAligned || (colAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)));
+        }
+        else if(dir == 'r'){
+            return !(!rowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 2));
+        }
+        return true;
     }
+
+    
 };
