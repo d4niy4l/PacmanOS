@@ -13,8 +13,8 @@ public:
     void start_game(){
         sf::RenderWindow window(sf::VideoMode(1000, 1000), "PacmanOS");
         sf :: Clock clock;
-        Pacman pacman(175, 125);
-        Maze maze("dungeon","./Sprites/Tile.png");
+        Pacman pacman(25 + 150, 25 + 100);
+        Maze maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png");
         while (window.isOpen())
         {
             window.clear();
@@ -22,6 +22,7 @@ public:
             pacman.timer += time;
             clock.restart();
             sf::Event event;
+
             while (window.pollEvent(event))
             {
                 if (event.type == sf::Event::Closed)

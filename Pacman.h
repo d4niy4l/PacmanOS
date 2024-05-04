@@ -23,59 +23,66 @@ public:
         left = top = 0;
         curr_frame_x = 0;
         curr_frame_y = 0;
-        this->x = 1;
-        this->y = 1;
+        this->x = 25;
+        this->y = 25;
         timer = 0;
         dir = 'l';
         sprite.setPosition(x,y);
+        //sprite.setOrigin(sprite.getPosition().x/2,sprite.getPosition().y/2);
         speed = 1;
     }
     void move(char pressed_dir, Maze& maze){
+        system("clear");
+        cout<<"x: "<<x<<endl;
+        cout<<"y: "<<y<<endl;
+        int gridRow = int((y) / 25);
+        int gridCol = int((x) / 25);
+        int gridX = gridCol * 25;
+        int gridY = gridRow * 25;
+        bool isRowAligned = abs(gridY - y) < 5;
+        bool isColAligned = abs(gridX - x) < 5;
         switch (pressed_dir){
         case 'r':
-            if(x+1 > maze[0].size() - 1){
-                return;
-            }
-            else if(maze[y][x+1] == 0){
-                return;
-            }
-            if((sprite.getPosition().x -150) > (x * 25)){
-                x++;
-            }
+            isRowAligned = abs(gridY - y) < 5;
+            isColAligned = abs(gridX - x) < 5;
+            if(!isRowAligned || maze[gridRow][gridCol + 1] == 0)
+                break;
+            sprite.setPosition(x + 150, gridY + 100);
             move_mouth();
             sprite.move(speed,0);
+            x+= speed;
             curr_frame_y = 0;
             break;
         case 'l':
-            if(x-1 <= 0){
-                return;
-            }   
-            if((sprite.getPosition().x -150) < (x * 25)){
-                x--;
-            }
+            isRowAligned = abs(gridY - y) < 5;
+            isColAligned = abs(gridX - x) < 5;
+            if(!isRowAligned || (isColAligned && maze[gridRow][gridCol - 1] == 0))
+                break;
+            sprite.setPosition(x + 150, gridY + 100);
             move_mouth();
             sprite.move(-1 * speed,0);
+            x-=speed;
             curr_frame_y = 1;
             break;
         case 'u':
-            if(y-1 < 0){
-                return;
-            }  
-            if((sprite.getPosition().y -100) <= (y * 25)){
-                y--;
-            }
+            isRowAligned = abs(gridY - y) < 5;
+            isColAligned = abs(gridX - x) < 5;
+            if(!isColAligned || (isRowAligned && maze[gridRow - 1][gridCol] == 0))
+                break;
+            sprite.setPosition(gridX + 150, y + 100);
             move_mouth();
             curr_frame_y = 2;
+            y -= speed;
             sprite.move(0,-1 * speed);
             break;
         case 'd':
-            if(y + 1 > dungeon.size()-1){
-                return;
-            }  
+            isRowAligned = abs(gridY - y) < 5;
+            isColAligned = abs(gridX - x) < 5;
+            if(!isColAligned|| maze[gridRow + 1][gridCol] == 0)
+                break;
+            sprite.setPosition(gridX + 150,y + 100 );
             move_mouth();
-            if((sprite.getPosition().y -100) >= (y * 25)){
-                y++;
-            }
+            y += speed;
             curr_frame_y = 3;
             sprite.move(0,speed);
             break;

@@ -8,24 +8,30 @@ class Maze{
     public:
     vector<vector<int>>& maze;
     vector<vector<sf :: Sprite>> sprites;
-    sf :: Texture tile_texts;   
+    sf :: Texture tile_text;   
+    sf :: Texture platform_text;
     bool descended;
-    Maze(string type,string path) : descended(false), maze(dungeon){
+    Maze(string type,string tile_path, string platform_path) : descended(false), maze(dungeon){
         if(type == "dungeon"){
             maze = dungeon;
         }
-        tile_texts.loadFromFile(path);
+        tile_text.loadFromFile(tile_path);
+        platform_text.loadFromFile(platform_path);
         for(int i = 0;i<maze.size();i++){
             sprites.push_back({});
             for(int j = 0;j<maze[i].size();j++){
                 if(maze[i][j] == 0){
-                    sprites[i].push_back(sf :: Sprite(tile_texts));
+                    sprites[i].push_back(sf :: Sprite(tile_text));
                     if(i < 11){
                         sprites[i][j].setPosition(j * 25 + 150, i* 25);
                     }
                     else{
-                        sprites[i][j].setPosition(j * 25 + 150, i* 25 + 200);
+                        sprites[i][j].setPosition(j * 25 + 150 , i* 25 + 200);
                     }
+                }
+                else if(maze[i][j] == 2){
+                    sprites[i].push_back(sf :: Sprite(platform_text));
+                    sprites[i][j].setPosition(j * 25 + 150, i* 25);
                 }
                 else{
                     sprites[i].push_back(sf :: Sprite());
@@ -36,9 +42,9 @@ class Maze{
     void draw(sf :: RenderWindow& window){
         bool descend = false;
         if(descended == false){
-                for(int i = 0;i<maze.size();i++){
-                for(int j = 0;j<maze[i].size();j++){
-                    if(maze[i][j] == 0){
+            for(int i = 0;i<maze.size();i++){
+                for(int j = 0 ;j<maze[i].size();j++){
+                    if(maze[i][j] == 0|| maze[i][j] == 2){
                         if(i < 11){
                             if(sprites[i][j].getPosition().y < i * 25 + 100){
                                 sprites[i][j].move(0, 0.1);
@@ -64,9 +70,9 @@ class Maze{
         else{
             for(int i = 0;i<dungeon.size();i++){
                 for(int j = 0;j<dungeon[i].size();j++){\
-                    if(dungeon[i][j] == 0){
+                    
                         window.draw(sprites[i][j]);
-                    }
+                    
                 }
             }
         }
