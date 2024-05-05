@@ -69,10 +69,8 @@ class Maze{
         }
         else{
             for(int i = 0;i<dungeon.size();i++){
-                for(int j = 0;j<dungeon[i].size();j++){\
-                    
-                        window.draw(sprites[i][j]);
-                    
+                for(int j = 0;j<dungeon[i].size();j++){                  
+                    window.draw(sprites[i][j]);
                 }
             }
         }

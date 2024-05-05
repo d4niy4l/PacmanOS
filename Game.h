@@ -14,7 +14,7 @@ class Game{
 private:
 public:
     Game() : maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png"){
-        ghosts[0].initialize("Blinky");
+         ghosts[0].initialize("Blinky");
         ghosts[1].initialize("Pinky");
         ghosts[2].initialize("Inky");
         ghosts[3].initialize("Clyde");
@@ -26,7 +26,9 @@ public:
         while (window.isOpen())
         {
             window.clear();
-            float time = clock.getElapsedTime().asSeconds();
+            sf::Time eTime = clock.getElapsedTime();
+            float time = eTime.asSeconds();
+            
             pacman.timer += time;
             for(int i = 0;i<ghosts.size();i++){
                 ghosts[i].timer += time;
@@ -58,7 +60,7 @@ public:
                 }
                 
             }
-            pacman.move(pressed_dir,maze);
+            pacman.move(pressed_dir,maze, time);
             window.display();
         }
     }

@@ -60,9 +60,13 @@ class Ghost{
 
         private:
 
+        void move(int px, int py) {
+            
+        }
+
         void flow_ghosts(){
             int last_frame;
-             if(dir == 'u'){
+            if(dir == 'u'){
                 last_frame = 5;
             }
             else if(dir == 'd'){

@@ -5,8 +5,8 @@
 #include "Maze.h"
 class Pacman{
 public:
-    int x;
-    int y;
+    float x;
+    float y;
     int left;
     int top;
     float timer;
@@ -28,9 +28,10 @@ public:
         timer = 0;
         dir = ' ';
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
-        speed = 1;
+        speed = 125;
     }
-    void move(char curr_dir, Maze& maze){
+    
+    void move(char curr_dir, Maze& maze, float time){
         int gridRow = int((y) / 25);
         int gridCol = int((x) / 25);
         int gridX = gridCol * 25;
@@ -47,18 +48,19 @@ public:
                 break;
             sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
-            sprite.move(speed,0);
-            x+= speed;
+            sprite.move(speed * time,0);
+            x+= speed * time;
             curr_frame_y = 0;
-            
+            //cout << "time: " << speed * time << endl;
+            //cout << "x:"  << x << endl;
             break;
         case 'l':
             if(!isRowAligned || (isColAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)))
                 break;
             sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
-            sprite.move(-1 * speed,0);
-            x-=speed;
+            sprite.move(-1 * speed * time,0);
+            x-=speed * time;
             curr_frame_y = 1;
             break;
         case 'u':
@@ -68,8 +70,8 @@ public:
             sprite.setPosition(gridX + maze_offset_x, y + maze_offset_y);
             move_mouth();
             curr_frame_y = 2;
-            y -= speed;
-            sprite.move(0,-1 * speed);
+            y -= speed * time;
+            sprite.move(0,-1 * speed * time);
             break;
         case 'd':
          
@@ -77,9 +79,9 @@ public:
                 break;
             sprite.setPosition(gridX + maze_offset_x,y + maze_offset_y );
             move_mouth();
-            y += speed;
+            y += speed * time;
             curr_frame_y = 3;
-            sprite.move(0,speed);
+            sprite.move(0,speed * time);
             break;
         default:
             break;
@@ -91,7 +93,9 @@ public:
         window.draw(sprite);
     }
 
-    private:
+    
+private:
+    
     void move_mouth(){
         if(timer > 0.15){
             timer = 0;
@@ -104,6 +108,7 @@ public:
         top = (text.getSize().y / 4.0) * curr_frame_y;
         sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 2.0, text.getSize().y / 4.0));
     }
+    
     bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
         if(dir == 'u'){
             return !(!colAligned || (rowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 2)));
@@ -119,6 +124,7 @@ public:
         }
         return true;
     }
+
 
     
 };
