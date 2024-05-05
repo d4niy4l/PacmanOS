@@ -5,14 +5,22 @@
 #include "Pacman.h"
 #include "Ghost.h"
 #include "Maze.h"
+#include <vector>
+#include "pthread.h"
+
 using namespace std;
+pthread_mutex_t gameOverMutex;
+
 
 class Game{
 private:
     Pacman pacman;
     Maze maze;
     array<Ghost,4> ghosts;
+    array<pthread_t,4> ghostThreads;
+    bool gameOver = false;
 public:
+    
     Game() : maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png"){
         ghosts[0].initialize("Blinky");
         ghosts[1].initialize("Pinky");
@@ -21,6 +29,20 @@ public:
     }
 
     void start_game(){
+        //  INITIALIZING MUTEXES
+        pthread_mutex_init(&gameOverMutex, NULL);
+        
+        //  CREATING THREADS
+        GhostArgs g[4];
+
+        for (int i = 0; i < ghostThreads.size(); i++) {
+            g[i].ghost = &ghosts[i];
+            g[i].isGameOver = isGameOver;
+            if (pthread_create(&ghostThreads[i], NULL, manageGhosts, &ghosts[i]) != 0) {
+                perror("ERROR: Unable to create thread.\n");
+            }
+        }
+        
         sf::RenderWindow window(sf::VideoMode(1000, 800), "PacmanOS");
         sf :: Clock clock;
         char pressed_dir;
@@ -64,10 +86,23 @@ public:
             pacman.move(pressed_dir,maze, time);
             window.display();
         }
+
+        //  GAME OVER
+        gameOver = true;
+
+        //  JOINING THREADS
+        for (int i = 0; i < ghostThreads.size(); i++) {
+            if (pthread_join(ghostThreads[i], NULL) != 0) {
+                perror("ERROR: Unable to create thread.\n");
+            }
+        }
+        
+        //  DESTROYING MUTEXES
+        pthread_mutex_destroy(&gameOverMutex);
     }
 
-    private:
-    
-    
+    bool isGameOver() {
+        return this->gameOver;        
+    }
 
 };
