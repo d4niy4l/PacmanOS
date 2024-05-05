@@ -16,6 +16,7 @@ class Ghost{
         bool hasEscaped;
         bool chaseMode;
         float chaseTimer;
+        float speed;
         string name;
         char dir;
         Ghost(){} 
@@ -36,19 +37,23 @@ class Ghost{
             curr_frame = 4;
             if(name == "Blinky"){
                 x = 25*11;
-                y = 25*12;
+                y = 25*11;
+                speed = 130;
             }
             else if(name == "Pinky"){
                 x = 25*10;
                 y = 25*12;
+                speed = 130;
             }
             else if(name == "Inky"){
                 x = 25*12;
                 y = 25*12;
+                speed = 130;
             }
             else if(name == "Clyde"){
                 x = 25*11;
-                y = 25*11;
+                y = 25*12;
+                speed = 120;
             }
             sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         }
@@ -60,7 +65,7 @@ class Ghost{
 
         private:
 
-        void move(int px, int py) {
+        void move(float px, float py, float time) {
             
         }
 

@@ -1,4 +1,3 @@
 PacmanOS
-Game.o
-Start.o
-.vscode/
+*.o
+/.vscode/

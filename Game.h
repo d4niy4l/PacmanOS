@@ -8,17 +8,18 @@
 using namespace std;
 
 class Game{
+private:
     Pacman pacman;
     Maze maze;
     array<Ghost,4> ghosts;
-private:
 public:
     Game() : maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png"){
-         ghosts[0].initialize("Blinky");
+        ghosts[0].initialize("Blinky");
         ghosts[1].initialize("Pinky");
         ghosts[2].initialize("Inky");
         ghosts[3].initialize("Clyde");
     }
+
     void start_game(){
         sf::RenderWindow window(sf::VideoMode(1000, 800), "PacmanOS");
         sf :: Clock clock;

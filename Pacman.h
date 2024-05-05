@@ -51,8 +51,7 @@ public:
             sprite.move(speed * time,0);
             x+= speed * time;
             curr_frame_y = 0;
-            //cout << "time: " << speed * time << endl;
-            //cout << "x:"  << x << endl;
+         
             break;
         case 'l':
             if(!isRowAligned || (isColAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)))
