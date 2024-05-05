@@ -1,4 +1,3 @@
-#pragma once
 #include <iostream>
 #include <array>
 #include <SFML/Graphics.hpp>
@@ -9,12 +8,15 @@
 #include "pthread.h"
 
 using namespace std;
-pthread_mutex_t gameOverMutex;
 
-Pacman pacman;
-Maze maze;
-array<Ghost,4> ghosts;
+//  MUTEXES
+pthread_mutex_t gameOverMutex;
 array<pthread_t,4> ghostThreads;
+
+//  PLAYERS
+Pacman pacman;
+Maze maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png");
+array<Ghost,4> ghosts;
 bool gameOver = false;
 
 
@@ -65,11 +67,29 @@ void start_game(){
     }
 }
 
+
+void* manageGhosts(void* singleGhostArgs) {
+    pthread_exit(NULL);
+}
 int main(){
+    //  INITIALIZE MUTEXES
+    
+    //  INITIALIZE GHOSTS
     ghosts[0].initialize("Blinky");
     ghosts[1].initialize("Pinky");
     ghosts[2].initialize("Inky");
     ghosts[3].initialize("Clyde");    
+
+    for (int i = 0; i < ghostThreads.size(); i++) {
+        if (pthread_create(&ghostThreads[i], NULL, manageGhosts ,NULL) != 0) {
+
+        }
+    }
+
+    //  RUN GAME    
     start_game();
+
+
+
     return 0;
 }
