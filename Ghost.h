@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <queue>
 #include "Maze.h"
 using namespace std;
 
@@ -38,22 +39,22 @@ class Ghost{
             if(name == "Blinky"){
                 x = 25*11;
                 y = 25*11;
-                speed = 130;
+                speed = 2.5;
             }
             else if(name == "Pinky"){
                 x = 25*10;
                 y = 25*12;
-                speed = 130;
+                speed = 2.5;
             }
             else if(name == "Inky"){
                 x = 25*12;
                 y = 25*12;
-                speed = 130;
+                speed = 2.5;
             }
             else if(name == "Clyde"){
                 x = 25*11;
                 y = 25*12;
-                speed = 120;
+                speed = 2.5;
             }
             sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         }
@@ -78,10 +79,10 @@ class Ghost{
                 last_frame = 7;
             }
             else if(dir == 'l'){
-                last_frame = 1;
+                last_frame = 3;
             }
             else if(dir == 'r'){
-                last_frame = 3;
+                last_frame = 1;
             }
             if(timer > 0.2){
                 timer = 0;

@@ -14,13 +14,13 @@ public:
     int curr_frame_x;
     int curr_frame_y;
     float speed;
+    int score;
     sf :: Texture text;
     sf :: Sprite sprite;
     Pacman(){
         text.loadFromFile("./Sprites/PacMan.png");
         sprite.setTexture(text);
         sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/2.0, text.getSize().y/4.0));
-        left = top = 0;
         curr_frame_x = 0;
         curr_frame_y = 0;
         this->x = 25*11;
@@ -29,6 +29,7 @@ public:
         dir = ' ';
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 125;
+        score = 0;
     }
     
     void move(char curr_dir, Maze& maze, float time){
@@ -44,7 +45,7 @@ public:
         }
         switch (curr_dir){
         case 'r':
-            if(!isRowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 2))
+            if(!isRowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 4))
                 break;
             sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
@@ -54,7 +55,7 @@ public:
          
             break;
         case 'l':
-            if(!isRowAligned || (isColAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)))
+            if(!isRowAligned || (isColAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 4)))
                 break;
             sprite.setPosition(x + maze_offset_x, gridY + maze_offset_y);
             move_mouth();
@@ -64,7 +65,7 @@ public:
             break;
         case 'u':
             
-            if(!isColAligned || (isRowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 2)))
+            if(!isColAligned || (isRowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 4)))
                 break;
             sprite.setPosition(gridX + maze_offset_x, y + maze_offset_y);
             move_mouth();
@@ -74,7 +75,7 @@ public:
             break;
         case 'd':
          
-            if(!isColAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 2))
+            if(!isColAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 4))
                 break;
             sprite.setPosition(gridX + maze_offset_x,y + maze_offset_y );
             move_mouth();
@@ -110,16 +111,16 @@ private:
     
     bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
         if(dir == 'u'){
-            return !(!colAligned || (rowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 2)));
+            return !(!colAligned || (rowAligned && (maze[gridRow - 1][gridCol] == 0 || maze[gridRow - 1][gridCol] == 4)));
         }
         else if(dir == 'd'){
-            return !(!colAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 2));
+            return !(!colAligned|| (maze[gridRow + 1][gridCol] == 0 || maze[gridRow + 1][gridCol] == 4));
         }
         else if(dir == 'l'){
-            return !(!rowAligned || (colAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 2)));
+            return !(!rowAligned || (colAligned && (maze[gridRow][gridCol - 1] == 0 || maze[gridRow][gridCol - 1] == 4)));
         }
         else if(dir == 'r'){
-            return !(!rowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 2));
+            return !(!rowAligned || (maze[gridRow][gridCol+1] == 0 || maze[gridRow][gridCol+1] == 4));
         }
         return true;
     }
