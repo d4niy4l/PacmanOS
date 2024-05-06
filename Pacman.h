@@ -28,7 +28,7 @@ public:
         timer = 0;
         dir = ' ';
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
-        speed = 125;
+        speed = 3;
         score = 0;
     }
     

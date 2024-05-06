@@ -25,11 +25,14 @@ void* start_game(void*){
     score.setPosition(450,10);
     score.setCharacterSize(30);
     score.setString("SCORE");
+    sf::Clock pClock;
+    float pElapsed_time = 0;
     while(true){
-        if(timer > 0.01){
-            pacman.move(pressed_dir,maze,timer);
-            timer = 0;
+        if(pElapsed_time > 20){
+            pacman.move(pressed_dir,maze,1);
+            pElapsed_time -= 20;
         }
+        pElapsed_time += pClock.restart().asMilliseconds();
     }
     pthread_exit(NULL);
 }
@@ -82,7 +85,7 @@ int main(){
     sf :: Clock clock;
     sf::Event event;
     window.create(sf::VideoMode(900, 800), "Hollow Pac");
-
+    window.setFramerateLimit(60);
     while (window.isOpen())
     {
         while (window.pollEvent(event))

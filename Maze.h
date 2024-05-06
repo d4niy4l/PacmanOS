@@ -34,7 +34,7 @@ class Maze{
         text.setCharacterSize(35);
         text.setPosition(300,375);
         text.setFillColor(sf :: Color :: Black);
-        speed = 50;
+        speed = 0.90;
         for(int i = 0;i<maze.size();i++){
             sprites.push_back({});
             for(int j = 0;j<maze[i].size();j++){
@@ -81,7 +81,7 @@ class Maze{
                     if(maze[i][j] == 0|| maze[i][j] == 4){
                         if(i < 11){
                             if(sprites[i][j].getPosition().y < i * 25 + maze_offset_y + 12.5){
-                                sprites[i][j].move(0, speed * time );
+                                sprites[i][j].move(0, speed);
                                 window.draw(sprites[i][j]);
                                 descend = true;
                             }
@@ -89,7 +89,7 @@ class Maze{
                         }
                         else{
                             if(sprites[i][j].getPosition().y > i * 25 + maze_offset_y + 12.5){
-                                sprites[i][j].move(0, -1 * speed * time);
+                                sprites[i][j].move(0, -1 * speed);
                                 window.draw(sprites[i][j]);
                                 descend = true;
                             }
