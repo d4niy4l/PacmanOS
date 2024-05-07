@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include <math.h>
 struct qNode {
   int x;
   int y;
@@ -85,23 +86,61 @@ pair<int,int> get_target(Ghost& g){
 			return pair<int,int>(1,maze[1].size() - 2);
         case 2: //Clyde: Target Block is Pac but goes into scatter mode when he comes near Pac (Lazyboi)
 			if(g.chaseMode == true){
-				int x_pos = pacman.x/25;
-				int y_pos = pacman.y/25;
-				return pair<int,int>(y_pos,x_pos);
+				/**/
+				int p_x = pacman.x/25;
+				int p_y = pacman.y/25;
+				int g_x = g.x/25;
+				int g_y = g.y/25;
+				float d = pow(float(p_x - g_x), 2.0) + pow(float(p_y - g_y), 2.0);
+				d =  sqrt(d);
+				if (d > 8) {
+					return pair<int,int>(p_x,p_y);
+				}
 			}
             return pair<int,int>(maze.size() - 2,maze[1].size() - 2);
-        case 3:
+        case 3:	//	INKY: Target block is in 2 front of pacman
 			if(g.chaseMode == true){
 				int g_x = g.x/25;
 				int g_y = g.y/25;
 				int p_x = pacman.x / 25;
 				int p_y = pacman.y / 25;
+				int y_pos = p_y;
+				int x_pos = p_x;
+				if(pacman.dir == 'u'){
+					if(y_pos - 2 < maze.size() - 1){
+						y_pos -=2;
+					}
+				}
+				else if(pacman.dir == 'd'){
+					if(y_pos + 2 > 0){
+						y_pos += 2;
+					}
+				}
+				else if(pacman.dir == 'l'){
+					if(x_pos - 2 > 0){
+						x_pos -= 2;
+					}
+				}
+				else if(pacman.dir == 'r'){
+					if(x_pos + 2 < maze[0].size() - 1){
+						x_pos += 2;
+					}
+				}
+				Ghost& blinky = ghosts[0];
+				int yDiff = blinky.y - y_pos;
+				int xDiff = blinky.x - x_pos;
+				yDiff *= -1;
+				xDiff *= -1;
+				y_pos += yDiff;
+				x_pos += xDiff;
+				/*
 				if(abs(g_x - p_x) < 4 && abs(g_y - p_y) < 4){
 					g.chaseMode = false;
 					g.chaseTimer -= 3;
 					return pair<int,int>(maze.size() - 2,1);
 				}
-				return pair<int,int>(p_y,p_x);
+				*/
+				return pair<int,int>(x_pos,y_pos);
 			}
             return pair<int,int>(maze.size() - 2,1);
     }

@@ -3,6 +3,7 @@
 #include "Ghost.h"
 #include "Maze.h"
 #include "pthread.h"
+
 //  MUTEXES
 pthread_mutex_t gameOverMutex;
 
@@ -26,9 +27,11 @@ sf :: Texture background_text;
 
 //SPRITES
 sf :: Sprite background;
+
 //TEXTS
 sf :: Text score;
 sf :: Text score_int;
+
 //GLOBALS
 bool gameOver = false;
 char pressed_dir;
