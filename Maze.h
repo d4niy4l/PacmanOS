@@ -124,7 +124,8 @@ class Maze{
         else{
             for(int i = 0;i<dungeon.size();i++){
                 for(int j = 0;j<dungeon[i].size();j++){
-                    window.draw(sprites[i][j]);
+                    if(maze[i][j] != 1)
+                        window.draw(sprites[i][j]);
                 }
             }
         }
@@ -135,5 +136,8 @@ class Maze{
             exit(EXIT_FAILURE);
         }
         return maze[index];
+    }
+    int size(){
+        return maze.size();
     }
 };

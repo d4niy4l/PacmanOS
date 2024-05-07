@@ -34,3 +34,5 @@ bool gameOver = false;
 char pressed_dir;
 float timer;
 bool appeared = false;
+float pactimer = 0;
+array<float, 4> ghosttimers;
