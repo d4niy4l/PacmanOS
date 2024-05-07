@@ -1,5 +1,13 @@
 #include "Globals.h"
 #include <math.h>
+
+enum{
+	Left = 'l',
+	Right = 'r',
+	Up = 'u',
+	Down = 'd'
+};
+
 struct qNode {
   int x;
   int y;
@@ -148,7 +156,7 @@ pair<int,int> get_target(Ghost& g){
 					}
 					else{
 						g.chaseMode = false;
-						g.chaseTimer = 0;
+						g.chaseTimer = 4;
 					}
 				}
 			return pair<int,int>(maze.size() - 2,maze[1].size() - 2);
@@ -156,20 +164,64 @@ pair<int,int> get_target(Ghost& g){
     return pair<int,int>(0,0); //just so i dont get a warning
 }
 
-void moveGhost(Ghost& g) {
-	float px = pacman.x;
-	float py = pacman.y;
-	pair<int,int> target = get_target(g);
-	int gridRow = target.first;
-	int gridCol = target.second;
-	//int gridRow = py/25;
-	//int gridCol = px/25;
-	string path = getShortestPath(g.y/25,g.x/25,gridRow,gridCol);
-	
-	if(gridRow == (int)g.y/25 && gridCol == (int)g.x/25){
-        return;
-    }
-	char currdir = path[0];
+
+char junctionDecision(Ghost& g){
+	string choice;
+	int gridX = g.x/25;
+	int gridY = g.y/25;
+	switch(g.dir){
+		case Up:
+			if(gridY >= 0 && maze[gridY-1][gridX] != wall){ 
+				choice += 'u';
+			}
+			if(gridX >= 0 && maze[gridY][gridX-1] != wall){
+				choice += 'l';
+			}
+			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall){
+				choice += 'r';
+			}
+		break;
+		case Down:
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+				choice += 'd';
+			}
+			if(gridX >= 0 && maze[gridY][gridX-1] != wall){
+				choice += 'l';
+			}
+			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall){
+				choice += 'r';
+			}
+		break;
+		case Left:
+			if(gridX >= 0 && maze[gridY][gridX-1] != wall){
+				choice += 'l';
+			}
+			if(gridY >= 0 && maze[gridY-1][gridX] != wall){
+				choice += 'u';
+			}
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+				choice += 'd';
+			}
+		break;
+		case Right:
+			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall){
+				choice += 'r';
+			}
+			if(gridY >= 0 && maze[gridY-1][gridX] != wall){
+				choice += 'u';
+			}
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+				choice += 'd';
+			}
+		break;
+	}
+	if(choice.size() == 0){
+		return g.dir;
+	}
+	return choice[rand()%choice.size()];
+}
+
+void checkAndMove(Ghost& g, char currdir){
 	int currX = g.y / 25;
 	int currY = g.x / 25;
 	int gridX = currY * 25;
@@ -180,7 +232,6 @@ void moveGhost(Ghost& g) {
 	if (!canSwitch) { 
 		currdir = g.dir;
 	}
-
 	if (currdir == 'u') {
 		if(!(!isColAligned || (isRowAligned && (maze[currX - 1][currY] == 0)))){
 		g.sprite.setPosition(gridX + maze_offset_x, g.y + maze_offset_y);
@@ -208,3 +259,80 @@ void moveGhost(Ghost& g) {
 	}
 	g.dir = currdir;
 }
+
+
+void moveGhost(Ghost& g) {
+	int px = pacman.x/25;
+	int py = pacman.y/25;
+	pair<int,int> target = get_target(g);
+	int gridRow = target.first;
+	int gridCol = target.second;
+	//int gridRow = py/25;
+	//int gridCol = px/25;
+	
+	char currdir; 
+	if(g.isScared == true){
+		currdir = junctionDecision(g);
+	}
+	else{
+		if(g.isEaten == true){
+			gridRow = g.spawn_row;
+			gridCol = g.spawn_col;
+		}
+		string path = getShortestPath(g.y/25,g.x/25,gridRow,gridCol);
+		currdir = path[0];
+		if(gridRow == (int)g.y/25 && gridCol == (int)g.x/25){
+			if(g.isEaten == true){
+				g.isEaten = false;
+				g.chaseMode = true;
+				g.toggle_sprite();
+			}
+			return;
+		}
+	}
+	
+	checkAndMove(g,currdir);
+}
+
+
+// switch(g.id){
+		// 	case blinky:
+		// 		if(px < maze[0].size()/2 && py < maze.size()/2){
+		// 			gridRow = 8;
+		// 			gridCol = 11;
+		// 		} 
+		// 		else{
+		// 			gridRow = 1;
+		// 			gridCol = 1;
+		// 		}
+		// 	break;
+		// 	case pinky:
+		// 		if(px >= maze[0].size()/2 && py < maze.size()/2){
+		// 			gridRow = 8;
+		// 			gridCol = 11;
+		// 		} 
+		// 		else{
+		// 			gridRow = 1;
+		// 			gridCol = maze[0].size() - 2;
+		// 		}
+		// 	break;
+		// 	case inky:
+		// 		if(px < maze[0].size()/2 && py >= maze.size()/2){
+		// 			gridRow = 8;
+		// 			gridCol = 11;
+		// 		} 
+		// 		else{
+		// 			gridRow = maze.size()-2;
+		// 			gridCol = 1;
+		// 		}
+		// 	break;
+		// 	case clyde:
+		// 		if(px >= maze[0].size()/2 && py >= maze.size()/2){
+		// 			gridRow = 8;
+		// 			gridCol = 11;
+		// 		} 
+		// 		else{
+		// 			gridRow = maze.size()-2;
+		// 			gridCol = maze[0].size()-2;
+		// 		}
+		// 	break;

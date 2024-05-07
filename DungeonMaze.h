@@ -23,7 +23,7 @@ std :: vector< std :: vector<int>> dungeon = {
 {hole, hole, hole, hole, wall, food, wall, food, food, food, food, food, food, food, food, food, wall, food, wall, hole, hole, hole, hole},
 {hole, hole, hole, hole, wall, food, wall, food, wall, wall, door, door, door, wall, wall, food, wall, food, wall, hole, hole, hole, hole},
 {wall, wall, wall, wall, wall, food, wall, food, wall, empt, empt, empt, empt, empt, wall, food, wall, food, wall, wall, wall, wall, wall},
-{food, food, food, food, food, food, food, food, wall, empt, empt, empt, empt, empt, wall, food, food, food, food, food, food, food, food}, // dungeon[11][11]
+{empt, food, food, food, food, food, food, food, wall, empt, empt, empt, empt, empt, wall, food, food, food, food, food, food, food, empt}, // dungeon[11][11]
 {wall, wall, wall, wall, wall, food, wall, food, wall, empt, empt, empt, empt, empt, wall, food, wall, food, wall, wall, wall, wall, wall},
 {hole, hole, hole, hole, wall, food, wall, food, wall, wall, wall, wall, wall, wall, wall, food, wall, food, wall, hole, hole, hole, hole},
 {hole, hole, hole, hole, wall, food, wall, food, food, food, food, empt, food, food, food, food, wall, food, wall, hole, hole, hole, hole},

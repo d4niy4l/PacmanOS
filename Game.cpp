@@ -17,6 +17,7 @@ void* manageGhosts(void* singleGhostArgs);
 
 //UI THREAD
 void* start_game(void*){
+
     background_text.loadFromFile("./Sprites/background.jpg");
     background.setTexture(background_text);
     background.setPosition(0, 37);
@@ -76,25 +77,26 @@ void* manageGhosts(void* singleGhostArgs) {
         if (appeared == true && ghosttimers[g->id] > 0.014){
             moveGhost(*g);
             ghosttimers[g->id] = 0;
-            int dice = rand() % 10 + 1;
-            pair<int,int> target = get_target(*g);
-            int g_row = target.first;
-            int g_col = target.second;
-            if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
-                g->chaseMode = !g->chaseMode;
-                g->chaseTimer = 0;
-            }
-            else if(g->chaseTimer > 4 && g->chaseMode == false){
-                g->chaseMode = !g->chaseMode;
-                g->chaseTimer = 0;
-            }
-            if((g_row == (int)g->y/25 && g_col == (int) g->x/25) && g->chaseMode == false){
-                g->chaseMode = true;
+            if(g->isScared == false){
+                int dice = rand() % 10 + 1;
+                pair<int,int> target = get_target(*g);
+                int g_row = target.first;
+                int g_col = target.second;
+                if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
+                    g->chaseMode = !g->chaseMode;
+                    g->chaseTimer = 0;
+                }
+                else if(g->chaseTimer > 10 && g->chaseMode == false){
+                    g->chaseMode = !g->chaseMode;
+                    g->chaseTimer = 0;
+                }
             }
             if(g->isScared == true && g->scared_timer <= 0){
                 g->scared_timer = 0;
                 g->isScared = false;
                 g->toggle_sprite();
+                g->chaseMode = true;
+                g->chaseTimer = 0;
             }
         }
         //pthread_mutex_unlock(&gameOverMutex);
@@ -102,10 +104,12 @@ void* manageGhosts(void* singleGhostArgs) {
     }
     return 0;
 }
+
 //MAIN LOOP THREAD
 int main(){
-    cout<<maze.size() <<" "<<maze[0].size()<<endl;
-    cout<<maze[14][19]<<endl;
+    scared.loadFromFile("./Sprites/Scared.png");
+    eaten_texture.loadFromFile("./Sprites/Eaten.png");
+    srand(time(0));
     ghosts[0].initialize("Blinky");
     ghosts[1].initialize("Pinky");
     ghosts[2].initialize("Inky");
@@ -178,6 +182,31 @@ int main(){
                     pressed_dir = 'u';
                 else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
                     pressed_dir = 'd';
+                int px = pacman.x/25;
+                int py = pacman.y/25;
+                if(py == 11){
+                    if(px == 0){
+                        pacman.x = (maze[0].size() - 2)*25;
+                        pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
+                    }
+                    else if(px == maze[0].size() - 2){
+                        pacman.x = 25;
+                        pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
+                    }
+                }
+                for(int i = 0;i<4;i++){
+                    if(ghosts[i].isScared == true){
+                        int gx = ghosts[i].x/25;
+                        int gy = ghosts[i].y/25;
+                        if(gx == px && gy == py){
+                            ghosts[i].isEaten = true;
+                            ghosts[i].isScared = false;
+                            pacman.score += 25;
+                            score_int.setString(to_string(pacman.score));
+                            ghosts[i].toggle_sprite();
+                        }
+                    }
+                }
             }
         }
         if(maze.descended == true  && appeared == false){

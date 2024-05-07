@@ -4,6 +4,8 @@
 #include <queue>
 #include "Maze.h"
 using namespace std;
+sf :: Texture scared;
+sf :: Texture eaten_texture; 
 
 class Ghost{
     public:
@@ -12,12 +14,14 @@ class Ghost{
     int id;
     sf :: Texture text;
     sf :: Sprite sprite;
-    sf :: Texture scared;
+    int spawn_row;
+    int spawn_col;
     int curr_frame;
     float timer;
     bool isEaten;
     bool hasEscaped;
     bool isScared;
+    bool prev_hiding_point;
     float scared_timer;
     bool chaseMode;
     float speed;
@@ -30,7 +34,7 @@ class Ghost{
         this->name = name;
         string path = "./Sprites/" + name + ".png";
         text.loadFromFile(path);
-        scared.loadFromFile("./Sprites/Scared.png");
+        
         sprite.setTexture(text);
         sprite.setTextureRect(sf :: IntRect(25*4,0,25,25));
         curr_frame = 0;
@@ -45,25 +49,28 @@ class Ghost{
         curr_frame = 4;
         chaseTimer = 0;
         if(name == "Blinky"){
-            x = 25*11;
-            y = 25*11;
+            spawn_col = 11;
+            spawn_row = 11;
             id = 0;
         }
         else if(name == "Pinky"){
-            x = 25*10;
-            y = 25*12;
+            spawn_col = 10;
+            spawn_row = 12;
             id = 1;
         }
         else if(name == "Inky"){
-            x = 25*12;
-            y = 25*12;
+            spawn_col = 12;
+            spawn_row = 12;
             id = 2;
         }
         else if(name == "Clyde"){
-            x = 25*11;
-            y = 25*12;
+            spawn_col = 11;
+            spawn_row = 12;
             id = 3;
+
         }
+        x = 25 * spawn_col;
+        y = 25 * spawn_row;
         speed = 1.8;
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
     }
@@ -75,7 +82,14 @@ class Ghost{
 
   
   void toggle_sprite(){
-        if(isScared == true){
+        if(isEaten == true){
+            sprite.setTexture(eaten_texture);
+            sprite.setTextureRect(sf :: IntRect(25*4,0,25,25));
+            scared_timer = 10;
+            curr_frame = 0;
+            speed = 3;
+        }
+        else if(isScared == true){
             sprite.setTexture(scared);
             sprite.setTextureRect(sf :: IntRect(0,0,25,25));
             scared_timer = 10;
@@ -85,6 +99,7 @@ class Ghost{
             sprite.setTexture(text);
             sprite.setTextureRect(sf :: IntRect(25*4,0,25,25));
             scared_timer = 0;
+            speed = 1.8;
         }
 
     }
