@@ -46,6 +46,14 @@ void* start_game(void*){
                 maze[gridRow][gridCol] = 1;
                 score_int.setString(to_string(pacman.score));
             }
+            if(maze[gridRow][gridCol] == 3){
+                for(int i = 0;i<4;i++){
+                    ghosts[i].isScared = true;
+                    ghosts[i].toggle_sprite();
+                    ghosts[i].timer = 10;
+                }
+                maze[gridRow][gridCol] = 1;
+            }
         }
         if(maze.descended == true  && appeared == false){
             if(score.getScale().x < 1){
@@ -72,16 +80,21 @@ void* manageGhosts(void* singleGhostArgs) {
             pair<int,int> target = get_target(*g);
             int g_row = target.first;
             int g_col = target.second;
-            if(g->chaseTimer > 10 && dice == 6 && g->chaseMode == true){
+            if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
                 g->chaseMode = !g->chaseMode;
                 g->chaseTimer = 0;
             }
-            else if(g->chaseTimer > 6 && dice == 6 && g->chaseMode == true){
+            else if(g->chaseTimer > 4 && g->chaseMode == false){
                 g->chaseMode = !g->chaseMode;
                 g->chaseTimer = 0;
             }
-            else if((g_row == (int)g->y/25 && g_col == (int) g->x/25) && g->chaseMode == false){
+            if((g_row == (int)g->y/25 && g_col == (int) g->x/25) && g->chaseMode == false){
                 g->chaseMode = true;
+            }
+            if(g->isScared == true && g->scared_timer <= 0){
+                g->scared_timer = 0;
+                g->isScared = false;
+                g->toggle_sprite();
             }
         }
         //pthread_mutex_unlock(&gameOverMutex);
@@ -91,6 +104,8 @@ void* manageGhosts(void* singleGhostArgs) {
 }
 //MAIN LOOP THREAD
 int main(){
+    cout<<maze.size() <<" "<<maze[0].size()<<endl;
+    cout<<maze[14][19]<<endl;
     ghosts[0].initialize("Blinky");
     ghosts[1].initialize("Pinky");
     ghosts[2].initialize("Inky");
@@ -140,6 +155,9 @@ int main(){
             ghosts[i].timer += time;
             ghosttimers[i] += time;
             ghosts[i].chaseTimer += time;
+            if(ghosts[i].isScared && ghosts[i].scared_timer >= 0){
+                ghosts[i].scared_timer -= time;
+            }
         }
         timer += time;
         clock.restart();

@@ -6,13 +6,13 @@ struct qNode {
   string str;
 };
 string getShortestPath(int x, int y, int tx, int ty, string str = "") {
-  vector<vector<int>> visited(dungeon.size() + 1, vector<int>(dungeon[0].size()+1, 0));
+  vector<vector<bool>> visited(maze.size() + 1, vector<bool>(maze[0].size()+1, false));
   queue<qNode> q;
   q.push({x, y, str});
   while (!q.empty()) {
     qNode n = q.front();
     q.pop();
-    if (n.x == 0 || n.y == 0 || n.y == dungeon[0].size() || n.x == dungeon[0].size()) {
+    if (n.x == 0 || n.y == 0 || n.y == maze[0].size() - 1 || n.x == maze.size() - 1) {
       continue;
     }
 
@@ -20,7 +20,7 @@ string getShortestPath(int x, int y, int tx, int ty, string str = "") {
     if (n.x == tx && n.y == ty) {
       return n.str;
     } else {
-      if (dungeon[n.x][n.y] == 0) {
+      if (maze[n.x][n.y] == wall || maze[n.x][n.y] == hole) {
         continue;
       }
       
@@ -54,51 +54,38 @@ bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int grid
 
 pair<int,int> get_target(Ghost& g){
     switch(g.id){
-        case 0: //Blinky: Target Block is Pacs position
-			return g.chaseMode == true ? pair<int,int>((int)pacman.x/25, (int)pacman.y/25) :
+        case blinky: //Blinky: Target Block is Pacs position
+			return (g.chaseMode == true) ? pair<int,int>((int)pacman.y/25, (int)pacman.x/25) :
 			pair<int,int>(1,1);
-        case 1: //Pinky: Target Block is 4 points infront of the direction Pac is facing
+        case pinky: //Pinky: Target Block is 4 points infront of the direction Pac is facing
 			if(g.chaseMode == true){
-				int x_pos = pacman.x/25;
-				int y_pos = pacman.y/25;
+				int y_pos = (int)pacman.y/25;
+				int x_pos = (int)pacman.x/25;
 				if(pacman.dir == 'u'){
-					if(y_pos - 4 < maze.size() - 1){
+					if(y_pos - 4 > 0 && (maze[y_pos-4][x_pos]!=wall && maze[y_pos-4][x_pos] != hole)){
 						y_pos -=4;
 					}
 				}
 				else if(pacman.dir == 'd'){
-					if(y_pos + 4 > 0){
+					if(y_pos + 4 < maze.size() && (maze[y_pos+4][x_pos]!=wall  && maze[y_pos+4][x_pos] != hole)){
 						y_pos += 4;
 					}
 				}
-				else if(pacman.dir == 'l'){
-					if(x_pos - 4 > 0){
+				else if(pacman.dir == 'l' ){
+					if(x_pos - 4 > 0 && (maze[y_pos][x_pos-4]!=wall && maze[y_pos][x_pos-4] != hole)){
 						x_pos -= 4;
 					}
 				}
 				else if(pacman.dir == 'r'){
-					if(x_pos + 4 < maze[0].size() - 1){
+					if((x_pos + 4 < maze[0].size())  && (maze[y_pos][x_pos+4]!=wall && maze[y_pos][x_pos+4] != hole)){
 						x_pos += 4;
 					}
 				}
 				return pair<int,int>(y_pos, x_pos);
 			}
 			return pair<int,int>(1,maze[1].size() - 2);
-        case 2: //Clyde: Target Block is Pac but goes into scatter mode when he comes near Pac (Lazyboi)
-			if(g.chaseMode == true){
-				/**/
-				int p_x = pacman.x/25;
-				int p_y = pacman.y/25;
-				int g_x = g.x/25;
-				int g_y = g.y/25;
-				float d = pow(float(p_x - g_x), 2.0) + pow(float(p_y - g_y), 2.0);
-				d =  sqrt(d);
-				if (d > 8) {
-					return pair<int,int>(p_x,p_y);
-				}
-			}
-            return pair<int,int>(maze.size() - 2,maze[1].size() - 2);
-        case 3:	//	INKY: Target block is in 2 front of pacman
+        
+        case inky:	//	INKY: Target block is in 2 front of pacman
 			if(g.chaseMode == true){
 				int g_x = g.x/25;
 				int g_y = g.y/25;
@@ -133,35 +120,55 @@ pair<int,int> get_target(Ghost& g){
 				xDiff *= -1;
 				y_pos += yDiff;
 				x_pos += xDiff;
-				/*
-				if(abs(g_x - p_x) < 4 && abs(g_y - p_y) < 4){
-					g.chaseMode = false;
-					g.chaseTimer -= 3;
-					return pair<int,int>(maze.size() - 2,1);
+				if(x_pos < 0){
+					x_pos *= -1;
+					x_pos %= maze[0].size();
 				}
-				*/
-				return pair<int,int>(x_pos,y_pos);
+				if(y_pos < 0){
+					y_pos *= -1;
+					y_pos %= maze.size();
+				}
+				if((maze[y_pos][x_pos] == wall || maze[y_pos][x_pos] == hole)){
+					return pair<int,int>(p_y,p_x);
+				}
+				return pair<int,int>(y_pos,x_pos);
 			}
-            return pair<int,int>(maze.size() - 2,1);
+            	return pair<int,int>(maze.size() - 2,1);
+			case clyde: //Clyde: Target Block is Pac but goes into scatter mode when he comes near Pac (Lazyboi)
+				if(g.chaseMode == true){
+					/**/
+					int p_x = pacman.x/25;
+					int p_y = pacman.y/25;
+					int g_x = g.x/25;
+					int g_y = g.y/25;
+					float d = pow(float(p_x - g_x), 2.0) + pow(float(p_y - g_y), 2.0);
+					d =  sqrt(d);
+					if (d > 3) {
+						return pair<int,int>(p_y,p_x);
+					}
+					else{
+						g.chaseMode = false;
+						g.chaseTimer = 0;
+					}
+				}
+			return pair<int,int>(maze.size() - 2,maze[1].size() - 2);
     }
     return pair<int,int>(0,0); //just so i dont get a warning
 }
 
 void moveGhost(Ghost& g) {
-	float px;
-	float py;
-	px = pacman.x;
-	py = pacman.y;
+	float px = pacman.x;
+	float py = pacman.y;
 	pair<int,int> target = get_target(g);
 	int gridRow = target.first;
 	int gridCol = target.second;
-	if(gridRow == (int)g.y/25 && gridCol == (int)g.x/25){
-		g.chaseMode = false;
-		g.chaseTimer = 0;
-		return;
-	}
-
+	//int gridRow = py/25;
+	//int gridCol = px/25;
 	string path = getShortestPath(g.y/25,g.x/25,gridRow,gridCol);
+	
+	if(gridRow == (int)g.y/25 && gridCol == (int)g.x/25){
+        return;
+    }
 	char currdir = path[0];
 	int currX = g.y / 25;
 	int currY = g.x / 25;

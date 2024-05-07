@@ -3,6 +3,13 @@
 #include <iostream>
 #include <cmath> 
 #include "Maze.h"
+
+enum{
+    blinky = 0,
+    pinky = 1,
+    inky = 2,
+    clyde = 3,
+};
 class Pacman{
 public:
     float x;
@@ -20,7 +27,7 @@ public:
     Pacman(){
         text.loadFromFile("./Sprites/PacMan.png");
         sprite.setTexture(text);
-        sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/2.0, text.getSize().y/4.0));
+        sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/4.0, text.getSize().y/4.0));
         curr_frame_x = 0;
         curr_frame_y = 0;
         this->x = 25*11;
@@ -97,16 +104,16 @@ public:
 private:
     
     void move_mouth(){
-        if(timer > 0.15){
+        if(timer > 0.05){
             timer = 0;
             curr_frame_x += 1;
-            if (curr_frame_x > 1){
+            if (curr_frame_x > 3){
                 curr_frame_x = 0;
             }
         }
-        left = (text.getSize().x / 2.0) * curr_frame_x;
+        left = (text.getSize().x / 4.0) * curr_frame_x;
         top = (text.getSize().y / 4.0) * curr_frame_y;
-        sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 2.0, text.getSize().y / 4.0));
+        sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 4.0, text.getSize().y / 4.0));
     }
     
     bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
