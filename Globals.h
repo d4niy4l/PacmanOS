@@ -6,7 +6,7 @@
 
 //  MUTEXES
 pthread_mutex_t gameOverMutex;
-
+pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
 //THREADS
 array<pthread_t,4> ghostThreads;
 pthread_t playerThread;
@@ -15,7 +15,6 @@ pthread_t uiThread;
 
 //  PLAYERS
 Pacman pacman;
-Maze maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png");
 array<Ghost,4> ghosts;
 sf::RenderWindow window;
 
@@ -38,4 +37,6 @@ char pressed_dir;
 float timer;
 bool appeared = false;
 float pactimer = 0;
+float clyde_timer = 0;
+bool clyde_psudoscatter = false;
 array<float, 4> ghosttimers;

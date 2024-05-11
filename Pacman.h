@@ -10,36 +10,55 @@ enum{
     inky = 2,
     clyde = 3,
 };
+bool hit = false;
+bool deathFinished = false;
 class Pacman{
 public:
     float x;
     float y;
-    int left;
-    int top;
+    int left_val;
     float timer;
     char dir;
     int curr_frame_x;
     int curr_frame_y;
     float speed;
     int score;
-    sf :: Texture text;
+    int spawn_x;
+    int spawn_y;
+    sf :: Texture up;
+    sf :: Texture down;
+    sf :: Texture left;
+    sf :: Texture right;
+    sf :: Texture death_texture;
     sf :: Sprite sprite;
+
     Pacman(){
-        text.loadFromFile("./Sprites/PacMan.png");
-        sprite.setTexture(text);
-        sprite.setTextureRect(sf :: IntRect(0,0,text.getSize().x/4.0, text.getSize().y/4.0));
+        up.loadFromFile("./Sprites/up.png");
+        down.loadFromFile("./Sprites/down.png");
+        left.loadFromFile("./Sprites/left.png");
+        right.loadFromFile("./Sprites/right.png");
+        death_texture.loadFromFile("./Sprites/Death.png");
+        sprite.setTexture(right);
+        sprite.setTextureRect(sf :: IntRect(0,0,right.getSize().x/2.0, right.getSize().y));
         curr_frame_x = 0;
         curr_frame_y = 0;
         this->x = 25*11;
         this->y = 25*14;
         timer = 0;
         dir = ' ';
+        spawn_x = 11;
+        spawn_y = 14;
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 1.9;
         score = 0;
     }
     
     void move(char curr_dir, Maze& maze, float time){
+
+        if(hit == true){
+            move_mouth();
+            return;
+        }
         int gridRow = int((y) / 25);
         int gridCol = int((x) / 25);
         int gridX = gridCol * 25;
@@ -58,7 +77,7 @@ public:
             move_mouth();
             sprite.move(speed * time,0);
             x+= speed * time;
-            curr_frame_y = 0;
+            sprite.setTexture(right);
          
             break;
         case 'l':
@@ -69,6 +88,7 @@ public:
             sprite.move(-1 * speed * time,0);
             x-=speed * time;
             curr_frame_y = 1;
+            sprite.setTexture(left);
             break;
         case 'u':
             
@@ -78,6 +98,7 @@ public:
             move_mouth();
             curr_frame_y = 2;
             y -= speed * time;
+            sprite.setTexture(up);
             sprite.move(0,-1 * speed * time);
             break;
         case 'd':
@@ -88,6 +109,7 @@ public:
             move_mouth();
             y += speed * time;
             curr_frame_y = 3;
+            sprite.setTexture(down);
             sprite.move(0,speed * time);
             break;
         default:
@@ -104,16 +126,30 @@ public:
 private:
     
     void move_mouth(){
-        if(timer > 0.05){
+        if(hit == true){
+            if(timer > 0.10){
+                timer = 0;
+                curr_frame_x += 1;
+                if(curr_frame_x > 7){
+                    curr_frame_x = 0;
+                    deathFinished = true;
+                    dir = ' ';
+                    return;
+                }
+            }
+            int left_val = (sprite.getTexture()->getSize().x / 8.0) * curr_frame_x;
+            sprite.setTextureRect(sf :: IntRect(left_val, 0, sprite.getTexture()->getSize().x / 8.0, sprite.getTexture()->getSize().y));
+            return;
+        }
+        if(timer > 0.15){
             timer = 0;
             curr_frame_x += 1;
-            if (curr_frame_x > 3){
+            if (curr_frame_x > 1){
                 curr_frame_x = 0;
             }
         }
-        left = (text.getSize().x / 4.0) * curr_frame_x;
-        top = (text.getSize().y / 4.0) * curr_frame_y;
-        sprite.setTextureRect(sf :: IntRect(left, top, text.getSize().x / 4.0, text.getSize().y / 4.0));
+        left_val = (sprite.getTexture()->getSize().x / 2.0) * curr_frame_x;
+        sprite.setTextureRect(sf :: IntRect(left_val, 0, sprite.getTexture()->getSize().x / 2.0, sprite.getTexture()->getSize().y));
     }
     
     bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){

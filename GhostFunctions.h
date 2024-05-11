@@ -42,7 +42,8 @@ string getShortestPath(int x, int y, int tx, int ty, string str = "") {
         q.push({n.x, n.y - 1, n.str + 'l'});
     }
   }
-  return "";
+  return ""
+  ;
 }
 bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
     if(dir == 'u'){
@@ -61,10 +62,21 @@ bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int grid
 }
 
 pair<int,int> get_target(Ghost& g){
+	int g_x = g.x/25;
+	int g_y = g.y/25;
     switch(g.id){
         case blinky: //Blinky: Target Block is Pacs position
-			return (g.chaseMode == true) ? pair<int,int>((int)pacman.y/25, (int)pacman.x/25) :
-			pair<int,int>(1,1);
+			if(g.chaseMode == true){
+				return pair<int,int>((int)pacman.y/25,(int)pacman.x/25);
+			}
+			else{
+				if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
+					pair<int,int> prev_target =  g.scatter_targets.front();
+					g.scatter_targets.pop();
+					g.scatter_targets.push(prev_target);
+				}
+			}
+			return g.scatter_targets.front();
         case pinky: //Pinky: Target Block is 4 points infront of the direction Pac is facing
 			if(g.chaseMode == true){
 				int y_pos = (int)pacman.y/25;
@@ -91,57 +103,65 @@ pair<int,int> get_target(Ghost& g){
 				}
 				return pair<int,int>(y_pos, x_pos);
 			}
-			return pair<int,int>(1,maze[1].size() - 2);
+			if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
+				pair<int,int> prev_target =  g.scatter_targets.front();
+				g.scatter_targets.pop();
+				g.scatter_targets.push(prev_target);
+			}
+			return g.scatter_targets.front();
         
         case inky:	//	INKY: Target block is in 2 front of pacman
-			if(g.chaseMode == true){
-				int g_x = g.x/25;
-				int g_y = g.y/25;
-				int p_x = pacman.x / 25;
-				int p_y = pacman.y / 25;
-				int y_pos = p_y;
-				int x_pos = p_x;
-				if(pacman.dir == 'u'){
-					if(y_pos - 2 < maze.size() - 1){
-						y_pos -=2;
-					}
-				}
-				else if(pacman.dir == 'd'){
-					if(y_pos + 2 > 0){
-						y_pos += 2;
-					}
-				}
-				else if(pacman.dir == 'l'){
-					if(x_pos - 2 > 0){
-						x_pos -= 2;
-					}
-				}
-				else if(pacman.dir == 'r'){
-					if(x_pos + 2 < maze[0].size() - 1){
-						x_pos += 2;
-					}
-				}
-				Ghost& blinky = ghosts[0];
-				int yDiff = blinky.y - y_pos;
-				int xDiff = blinky.x - x_pos;
-				yDiff *= -1;
-				xDiff *= -1;
-				y_pos += yDiff;
-				x_pos += xDiff;
-				if(x_pos < 0){
-					x_pos *= -1;
-					x_pos %= maze[0].size();
-				}
-				if(y_pos < 0){
-					y_pos *= -1;
-					y_pos %= maze.size();
-				}
-				if((maze[y_pos][x_pos] == wall || maze[y_pos][x_pos] == hole)){
-					return pair<int,int>(p_y,p_x);
-				}
-				return pair<int,int>(y_pos,x_pos);
+
+			//WARNING INKY CHASE MDOE NEEDS FIX, CAUSES SEGMENTATION FAULTS
+			// if(g.chaseMode == true){
+			// 	int p_x = pacman.x / 25;
+			// 	int p_y = pacman.y / 25;
+			// 	int y_pos = p_y;
+			// 	int x_pos = p_x;
+			// 	if(pacman.dir == 'u'){
+			// 		if(y_pos - 2 < maze.size() - 1){
+			// 			y_pos -=2;
+			// 		}
+			// 	}
+			// 	else if(pacman.dir == 'd'){
+			// 		if(y_pos + 2 > 0){
+			// 			y_pos += 2;
+			// 		}
+			// 	}
+			// 	else if(pacman.dir == 'l'){
+			// 		if(x_pos - 2 > 0){
+			// 			x_pos -= 2;
+			// 		}
+			// 	}
+			// 	else if(pacman.dir == 'r'){
+			// 		if(x_pos + 2 < maze[0].size() - 1){
+			// 			x_pos += 2;
+			// 		}
+			// 	}
+			// 	Ghost& blinky = ghosts[0];
+			// 	int yDiff = blinky.y - y_pos;
+			// 	int xDiff = blinky.x - x_pos;
+			// 	yDiff *= 2;
+			// 	xDiff *= 2;
+			// 	yDiff = abs(yDiff);
+			// 	xDiff = abs(xDiff);
+
+			// 	if(xDiff >= maze[0].size() && yDiff >= maze.size()){
+			// 		xDiff %= maze[0].size();
+			// 		yDiff %= maze.size();
+			// 	}
+
+			// 	if((maze[yDiff][xDiff] == wall || maze[yDiff][xDiff] == hole)){
+			// 		return pair<int,int>(p_y,p_x);
+			// 	}
+			// 	return pair<int,int>(yDiff,xDiff);
+			//}
+			if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
+			pair<int,int> prev_target =  g.scatter_targets.front();
+			g.scatter_targets.pop();
+			g.scatter_targets.push(prev_target);
 			}
-            	return pair<int,int>(maze.size() - 2,1);
+			return g.scatter_targets.front();
 			case clyde: //Clyde: Target Block is Pac but goes into scatter mode when he comes near Pac (Lazyboi)
 				if(g.chaseMode == true){
 					/**/
@@ -151,15 +171,25 @@ pair<int,int> get_target(Ghost& g){
 					int g_y = g.y/25;
 					float d = pow(float(p_x - g_x), 2.0) + pow(float(p_y - g_y), 2.0);
 					d =  sqrt(d);
-					if (d > 3) {
+					if (d > 3 && g.chaseMode == true && clyde_timer > 5) {
 						return pair<int,int>(p_y,p_x);
+						clyde_timer = 0;
+						g.chaseMode = true;
+					}
+					else if(clyde_timer > 5){
+						g.chaseMode = false;
+						clyde_timer = 0;
 					}
 					else{
-						g.chaseMode = false;
-						g.chaseTimer = 4;
+						g.chaseMode = false; 
 					}
 				}
-			return pair<int,int>(maze.size() - 2,maze[1].size() - 2);
+				if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
+				pair<int,int> prev_target =  g.scatter_targets.front();
+				g.scatter_targets.pop();
+				g.scatter_targets.push(prev_target);
+			}
+			return g.scatter_targets.front();
     }
     return pair<int,int>(0,0); //just so i dont get a warning
 }
@@ -216,7 +246,10 @@ char junctionDecision(Ghost& g){
 		break;
 	}
 	if(choice.size() == 0){
-		return g.dir;
+		if(g.dir == Up) return Down;
+		else if(g.dir == Down) return Up;
+		else if(g.dir == Left) return Right;
+		else if(g.dir == Right) return Left;
 	}
 	return choice[rand()%choice.size()];
 }

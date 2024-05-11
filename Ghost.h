@@ -3,6 +3,9 @@
 #include <iostream>
 #include <queue>
 #include "Maze.h"
+
+Maze maze("dungeon","./Sprites/Tile.png","./Sprites/Platform.png");
+
 using namespace std;
 sf :: Texture scared;
 sf :: Texture eaten_texture; 
@@ -28,6 +31,7 @@ class Ghost{
     string name;
     char dir;
     float chaseTimer;
+    queue<pair<int,int> >scatter_targets;
     Ghost(){} 
     
     void initialize(string name){
@@ -40,7 +44,7 @@ class Ghost{
         curr_frame = 0;
         dir = 'u';
         chaseTimer = 0;
-        chaseMode = true;
+        chaseMode = false;
         hasEscaped = false;
         isEaten = false;
         isScared = false;
@@ -52,21 +56,37 @@ class Ghost{
             spawn_col = 11;
             spawn_row = 11;
             id = 0;
+            scatter_targets.push(pair<int,int>(1,1));
+            scatter_targets.push(pair<int,int>(1,5));
+            scatter_targets.push(pair<int,int>(3,5));
+            scatter_targets.push(pair<int,int>(3,1));
         }
         else if(name == "Pinky"){
             spawn_col = 10;
             spawn_row = 12;
             id = 1;
+            scatter_targets.push(pair<int,int>(1,maze[0].size() - 2));
+            scatter_targets.push(pair<int,int>(1,maze[0].size() - 6));
+            scatter_targets.push(pair<int,int>(3,maze[0].size() - 6));
+            scatter_targets.push(pair<int,int>(3,maze[0].size() - 2));
         }
         else if(name == "Inky"){
             spawn_col = 12;
             spawn_row = 12;
             id = 2;
+            scatter_targets.push(pair<int,int>(maze.size() - 4,8));
+            scatter_targets.push(pair<int,int>(maze.size()-4,1));
+            scatter_targets.push(pair<int,int>(maze.size()-2,1));
+            scatter_targets.push(pair<int,int>(maze.size()-2, 10));
         }
         else if(name == "Clyde"){
             spawn_col = 11;
             spawn_row = 12;
             id = 3;
+            scatter_targets.push(pair<int,int>(maze.size() - 4,maze[0].size() - 10));
+            scatter_targets.push(pair<int,int>(maze.size()-4,maze[0].size() - 2));
+            scatter_targets.push(pair<int,int>(maze.size()-2,maze[0].size() - 2));
+            scatter_targets.push(pair<int,int>(maze.size()-2, maze[0].size() - 10));
 
         }
         x = 25 * spawn_col;
