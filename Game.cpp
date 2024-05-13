@@ -16,7 +16,7 @@ using namespace std;
 void* manageGhosts(void* singleGhostArgs);
 
 //UI THREAD
-void* start_game(void*){
+void* ui_thread(void*){
 
     background_text.loadFromFile("./Sprites/background.jpg");
     background.setTexture(background_text);
@@ -37,9 +37,37 @@ void* start_game(void*){
     score_int.setScale(0,0);
     while(true){
         
-        if(pactimer > 0.014){
+        if(pactimer > 0.014 && pacAte == false){
             pacman.move(pressed_dir,maze,1);
             pactimer = 0;
+            int px = pacman.x/25;
+            int py = pacman.y/25;
+            if (maze[py][px] == 2){
+                    pacman.score += 1;
+                    maze[py][px] = 1;
+                    score_int.setString(to_string(pacman.score));
+                }
+                if(maze[py][px] == 3){
+                    pacAte = true;
+                    if(px == 1 && py == maze.size() - 2){
+                        lightening.setAnimationPosition(25 + maze_offset_x, -25);
+                    }
+                    else if (px == 1 && py == 1){
+                        lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
+                    }
+                    else if(px == maze[0].size() - 2 && py == 1){
+                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
+                    }
+                    else if (px == maze[0].size() - 2 && py == maze.size() - 2){
+                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
+                    }
+                    for(int i = 0;i<4;i++){
+                        ghosts[i].isScared = true;
+                        ghosts[i].toggle_sprite();
+                        ghosts[i].timer = 10;
+                    }
+                    maze[py][px] = 1;
+                }
         }
         if(maze.descended == true  && appeared == false){
             if(score.getScale().x < 1){
@@ -50,13 +78,10 @@ void* start_game(void*){
             }
         }
     }
+    
     pthread_exit(NULL);
 }
 
-
-void restore_entities(){
-    
-}
 
 
 void* manageGhosts(void* singleGhostArgs) {
@@ -64,7 +89,7 @@ void* manageGhosts(void* singleGhostArgs) {
     srand(time(0));
     while (gameOver == false) {
         //pthread_mutex_lock(&gameOverMutex);
-        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false){
+        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false && pacAte == false){
             moveGhost(*g);
             ghosttimers[g->id] = 0;
             if(g->isScared == false){
@@ -106,6 +131,10 @@ void reset_entities(){
         ghosts[i].x = ghosts[i].spawn_col * 25;
         ghosts[i].y = ghosts[i].spawn_row * 25;
         ghosts[i].sprite.setPosition(ghosts[i].x + maze_offset_x, ghosts[i].y + maze_offset_y);
+        ghosts[i].isScared = false;
+        ghosts[i].hasEscaped = false;
+        ghosts[i].chaseMode = false;
+        ghosts[i].chaseTimer = 0;
     }
     deathFinished = false;
     hit = false;
@@ -134,7 +163,7 @@ int main(){
     pthread_attr_t gameThread_attr;
     pthread_attr_init(&gameThread_attr);
     pthread_attr_setdetachstate(&gameThread_attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&gameThread, &gameThread_attr,start_game,nullptr);
+    pthread_create(&gameThread, &gameThread_attr,ui_thread,nullptr);
     pthread_attr_destroy(&gameThread_attr);
 
     //INITIALIZE SFML ELEMENTS
@@ -142,6 +171,8 @@ int main(){
     sf::Event event;
     window.create(sf::VideoMode(900, 800), "Hollow Pac");
     window.setFramerateLimit(60);
+
+   
     while (window.isOpen())
     {
         while (window.pollEvent(event))
@@ -160,6 +191,10 @@ int main(){
         pactimer += time;
         if(maze.descended == false){
             maze.laser.timer += time;
+        }
+        if(pacAte == true){
+            lightening.timer += time;
+            lightening.upDateAnimation();
         }
         for(int i = 0;i<ghosts.size();i++){
             if(appeared){
@@ -182,6 +217,13 @@ int main(){
                 ghosts[i].draw(window);
             }
             pacman.draw(window);
+            if(pacAte == true){
+                window.draw(lightening.sprite);
+            }
+            if(pacAte == true && lightening.animationFinished()){
+                lightening.restartAnimation();
+                pacAte = false;
+            }
             if(appeared){
                 
                 if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
@@ -204,19 +246,7 @@ int main(){
                         pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
                     }
                 }
-                if (maze[py][px] == 2){
-                    pacman.score += 1;
-                    maze[py][px] = 1;
-                    score_int.setString(to_string(pacman.score));
-                }
-                if(maze[py][px] == 3){
-                    for(int i = 0;i<4;i++){
-                        ghosts[i].isScared = true;
-                        ghosts[i].toggle_sprite();
-                        ghosts[i].timer = 10;
-                    }
-                    maze[py][px] = 1;
-                }
+                
                 for(int i = 0;i<4;i++){
                     int gx = ghosts[i].x/25;
                     int gy = ghosts[i].y/25;
@@ -260,13 +290,7 @@ int main(){
         window.draw(score_int);
         window.display();
     }
-    gameOver = true;
-    for (int i = 0; i < ghostThreads.size(); i++) {
-        if (pthread_join(ghostThreads[i], NULL) != 0) {
-            perror("ERROR: Unable to join thread.\n");
-            exit(EXIT_FAILURE);
-        }
-    }   
+    gameOver = true; 
 
     return 0;
 }

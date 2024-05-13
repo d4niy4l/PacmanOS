@@ -44,7 +44,7 @@ class Ghost{
         curr_frame = 0;
         dir = 'u';
         chaseTimer = 0;
-        chaseMode = false;
+        chaseMode = !false;
         hasEscaped = false;
         isEaten = false;
         isScared = false;
@@ -107,7 +107,7 @@ class Ghost{
             sprite.setTextureRect(sf :: IntRect(25*4,0,25,25));
             scared_timer = 10;
             curr_frame = 0;
-            speed = 3;
+            speed = 2.5;
         }
         else if(isScared == true){
             sprite.setTexture(scared);
@@ -153,7 +153,7 @@ class Ghost{
             last_frame = 1;
         }
         else{
-            last_frame = rand() % 7 + 1;
+            last_frame = 1;
         }
         if(timer > 0.2){
             timer = 0;

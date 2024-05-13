@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include <math.h>
+#include <cmath> 
 
 enum{
 	Left = 'l',
@@ -7,6 +7,7 @@ enum{
 	Up = 'u',
 	Down = 'd'
 };
+
 
 struct qNode {
   int x;
@@ -27,7 +28,8 @@ string getShortestPath(int x, int y, int tx, int ty, string str = "") {
     visited[n.x][n.y] = 1;
     if (n.x == tx && n.y == ty) {
       return n.str;
-    } else {
+    } 
+	else {
       if (maze[n.x][n.y] == wall || maze[n.x][n.y] == hole) {
         continue;
       }
@@ -113,49 +115,52 @@ pair<int,int> get_target(Ghost& g){
         case inky:	//	INKY: Target block is in 2 front of pacman
 
 			//WARNING INKY CHASE MDOE NEEDS FIX, CAUSES SEGMENTATION FAULTS
-			// if(g.chaseMode == true){
-			// 	int p_x = pacman.x / 25;
-			// 	int p_y = pacman.y / 25;
-			// 	int y_pos = p_y;
-			// 	int x_pos = p_x;
-			// 	if(pacman.dir == 'u'){
-			// 		if(y_pos - 2 < maze.size() - 1){
-			// 			y_pos -=2;
-			// 		}
-			// 	}
-			// 	else if(pacman.dir == 'd'){
-			// 		if(y_pos + 2 > 0){
-			// 			y_pos += 2;
-			// 		}
-			// 	}
-			// 	else if(pacman.dir == 'l'){
-			// 		if(x_pos - 2 > 0){
-			// 			x_pos -= 2;
-			// 		}
-			// 	}
-			// 	else if(pacman.dir == 'r'){
-			// 		if(x_pos + 2 < maze[0].size() - 1){
-			// 			x_pos += 2;
-			// 		}
-			// 	}
-			// 	Ghost& blinky = ghosts[0];
-			// 	int yDiff = blinky.y - y_pos;
-			// 	int xDiff = blinky.x - x_pos;
-			// 	yDiff *= 2;
-			// 	xDiff *= 2;
-			// 	yDiff = abs(yDiff);
-			// 	xDiff = abs(xDiff);
+			if(g.chaseMode == true){
+				int p_x = pacman.x / 25;
+				int p_y = pacman.y / 25;
+				int y_pos = p_y;
+				int x_pos = p_x;
+				if(pacman.dir == 'u'){
+					if(y_pos - 2 < maze.size() - 1){
+						y_pos -=2;
+					}
+				}
+				else if(pacman.dir == 'd'){
+					if(y_pos + 2 > 0){
+						y_pos += 2;
+					}
+				}
+				else if(pacman.dir == 'l'){
+					if(x_pos - 2 > 0){
+						x_pos -= 2;
+					}
+				}
+				else if(pacman.dir == 'r'){
+					if(x_pos + 2 < maze[0].size() - 1){
+						x_pos += 2;
+					}
+				}
+				Ghost& blinky = ghosts[0];
+				int yDiff = blinky.y - y_pos;
+				int xDiff = blinky.x - x_pos;
+				yDiff = std :: abs(1 * yDiff) ;
+				xDiff = std :: abs(1 * xDiff);
+				if(yDiff > maze.size() - 2){
+					yDiff = maze.size() - 2;
+				}
+				else if(yDiff < 1){
+					yDiff = 1;
+				}
+				if(xDiff > maze[0].size() - 2){
+					xDiff = maze[0].size() - 2;
+				}
+				else if(xDiff < 1){
+					xDiff = 1;
+				}
 
-			// 	if(xDiff >= maze[0].size() && yDiff >= maze.size()){
-			// 		xDiff %= maze[0].size();
-			// 		yDiff %= maze.size();
-			// 	}
-
-			// 	if((maze[yDiff][xDiff] == wall || maze[yDiff][xDiff] == hole)){
-			// 		return pair<int,int>(p_y,p_x);
-			// 	}
-			// 	return pair<int,int>(yDiff,xDiff);
-			//}
+				
+				return pair<int,int>(yDiff,xDiff);
+			}
 			if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
 			pair<int,int> prev_target =  g.scatter_targets.front();
 			g.scatter_targets.pop();
@@ -300,9 +305,6 @@ void moveGhost(Ghost& g) {
 	pair<int,int> target = get_target(g);
 	int gridRow = target.first;
 	int gridCol = target.second;
-	//int gridRow = py/25;
-	//int gridCol = px/25;
-	
 	char currdir; 
 	if(g.isScared == true){
 		currdir = junctionDecision(g);

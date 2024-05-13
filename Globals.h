@@ -40,3 +40,5 @@ float pactimer = 0;
 float clyde_timer = 0;
 bool clyde_psudoscatter = false;
 array<float, 4> ghosttimers;
+bool pacAte = false; //boolean for lightning
+Animation lightening = Animation("./Sprites/Lightning.png", 0.05,4,2);
