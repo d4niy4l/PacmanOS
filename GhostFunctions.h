@@ -47,6 +47,7 @@ string getShortestPath(int x, int y, int tx, int ty, string str = "") {
   return ""
   ;
 }
+
 bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int gridRow, int gridCol){
     if(dir == 'u'){
         return !(!colAligned || (rowAligned && (maze[gridRow - 1][gridCol] == 0)));
@@ -61,6 +62,38 @@ bool can_change(char dir, bool rowAligned, bool colAligned, Maze& maze, int grid
         return !(!rowAligned || (maze[gridRow][gridCol+1] == 0));
     }
     return true;
+}
+
+pair<int, int> getNearestPath(int currX, int currY) {
+  struct Node{
+	int x;
+	int y;
+  };
+  vector<vector<int>> visited(maze.size(),
+                              vector<int>(maze[0].size(), 0));
+
+  queue<Node> q;
+  q.push({currX, currY});
+  while (!q.empty()) {
+    Node n = q.front();
+    q.pop();
+    if (n.x < 0 || n.x > maze[0].size() || n.y < 0 || n.y > maze.size()) {
+      continue;
+    }
+    if (visited[n.x][n.y]) {
+      continue;
+    }
+    visited[n.x][n.y] = 1;
+    if (maze[n.x][n.y] == 1 || maze[n.x][n.y] == 2 ||maze[n.x][n.y] == 3 ) {
+      return pair<int, int>(n.x, n.y);
+    } else {
+      q.push({n.x + 1, n.y});
+      q.push({n.x - 1, n.y});
+      q.push({n.x, n.y + 1});
+      q.push({n.x, n.y - 1});
+    }
+  }
+  return pair<int, int>(1, 1);
 }
 
 pair<int,int> get_target(Ghost& g){
@@ -116,50 +149,50 @@ pair<int,int> get_target(Ghost& g){
 
 			//WARNING INKY CHASE MDOE NEEDS FIX, CAUSES SEGMENTATION FAULTS
 			if(g.chaseMode == true){
-				int p_x = pacman.x / 25;
-				int p_y = pacman.y / 25;
+				int p_x = pacman.y / 25;
+				int p_y = pacman.x / 25;
 				int y_pos = p_y;
 				int x_pos = p_x;
 				if(pacman.dir == 'u'){
-					if(y_pos - 2 < maze.size() - 1){
-						y_pos -=2;
-					}
+					x_pos -=2;
 				}
 				else if(pacman.dir == 'd'){
-					if(y_pos + 2 > 0){
-						y_pos += 2;
-					}
+					x_pos += 2;
 				}
 				else if(pacman.dir == 'l'){
-					if(x_pos - 2 > 0){
-						x_pos -= 2;
-					}
+					y_pos -= 2;
 				}
 				else if(pacman.dir == 'r'){
-					if(x_pos + 2 < maze[0].size() - 1){
-						x_pos += 2;
-					}
-				}
-				Ghost& blinky = ghosts[0];
-				int yDiff = blinky.y - y_pos;
-				int xDiff = blinky.x - x_pos;
-				yDiff = std :: abs(1 * yDiff) ;
-				xDiff = std :: abs(1 * xDiff);
-				if(yDiff > maze.size() - 2){
-					yDiff = maze.size() - 2;
-				}
-				else if(yDiff < 1){
-					yDiff = 1;
-				}
-				if(xDiff > maze[0].size() - 2){
-					xDiff = maze[0].size() - 2;
-				}
-				else if(xDiff < 1){
-					xDiff = 1;
+					y_pos += 2;
 				}
 
-				
-				return pair<int,int>(yDiff,xDiff);
+				//	GETTING BLINKY'S COORDS
+				Ghost& blinky = ghosts[0];
+				int blinky_x = blinky.y /25;
+				int blinky_y = blinky.x /25;
+
+				int xDiff = x_pos - blinky_x;
+				int yDiff = y_pos - blinky_y;
+
+				x_pos += xDiff;
+				y_pos += yDiff;
+
+				if (x_pos < 0) {
+					x_pos = 0;
+				}
+				if (x_pos > maze[0].size() - 1) {
+					x_pos = maze[0].size() - 1;
+				}
+				if (y_pos < 0) {
+					y_pos = 0;
+				}
+				if (y_pos > maze.size() - 1) {
+					y_pos = maze.size() - 1;
+				}
+				pair<int,int> target = getNearestPath(x_pos, y_pos);				
+
+				return target;
+				//return pair<int,int>(yDiff,xDiff);
 			}
 			if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
 			pair<int,int> prev_target =  g.scatter_targets.front();
