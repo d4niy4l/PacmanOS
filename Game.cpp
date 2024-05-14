@@ -49,7 +49,10 @@ void* ui_thread(void*){
     }
     keys[0].setPosition(9 * 25+  maze_offset_x, 10*25 + maze_offset_y );
     keys[1].setPosition(13 * 25+  maze_offset_x, 10*25 + maze_offset_y );
-
+    kVis[0] = 1;
+    kVis[1] = 1;
+    eVis[0] = 1;
+    eVis[1] = 1;
 
     for (int i = 0; i < 2; i++) {
         exitPermits[i].setSize(sf::Vector2f(25,25));
@@ -156,6 +159,9 @@ void* pelletConsumer(void*){
                     ghosts[i].isScared = true;
                     ghosts[i].toggle_sprite();
                     ghosts[i].timer = 10;
+                    ghosts[i].speed = 1.8;
+                    ghosts[i].isFast = false;
+                    ghosts[i].fast_timer = 0;
                 }
                 maze[py][px] = 1;
                 sem_post(&mutex);
@@ -219,6 +225,25 @@ void* manageGhosts(void* singleGhostArgs) {
                                 
                 // }
                 pthread_mutex_unlock(&checkCollision);
+                sem_wait(&fast);
+                pthread_mutex_lock(&fastGhost);
+                if(maze[gy][gx] == 7 && (g->id == 0 || g->id == 1) && g->isFast == false && g->isEaten == false){
+                    g->speed = 2.5;
+                    g->isFast = true;
+                    g->fast_timer = 0;
+                    maze[gy][gx] = 1;
+                    if(cherriesEaten == false){
+                        cherriesEaten = true;
+                        generationTime = 0;
+                    }
+                }
+                pthread_mutex_unlock(&fastGhost);
+                sem_post(&fast);
+                if(g->isFast == true && g->fast_timer > 5){
+                    g->speed = 1.8;
+                    g->isFast = false;
+                    g->fast_timer = 0;
+                }
             }else{
                 
                 //  2 KEYS => (0,1) WILL BE PICKED BASED ON GHOST'S ID
@@ -248,6 +273,7 @@ void* manageGhosts(void* singleGhostArgs) {
                         checkAndMove(*g, dir[0]);
                         if (abs(kx - g->x) < 25 && abs(ky-g->y) < 20) {
                             collision++;
+                            kVis[keyIdx] = 0;
                             cout << "Ghost "<< g->name << " got the key. \n";
                         }
                         gx = g->y/25;
@@ -279,6 +305,7 @@ void* manageGhosts(void* singleGhostArgs) {
                         checkAndMove(*g, dir[0]);
                         if (abs(kx - g->x) < 20 && abs(ky-g->y) < 20) {
                             collision++;
+                            eVis[permitIdx] = 0;
                             cout << "Ghost "<< g->name << " got the permit. \n";
                         }
                         gx = g->y/25;
@@ -289,6 +316,8 @@ void* manageGhosts(void* singleGhostArgs) {
                 
                 g->hasEscaped = true;
                 cout << "Ghost " << g->name << " has escaped.\n";
+                kVis[keyIdx] = 1;
+                eVis[permitIdx] = 1;
                 //  RELEASE PERMIT
                 if (sem_post(&exitPermit[keyIdx]) !=  0) {
                     cout << "Ghost " << g->name << "got unexpected error posting for exit permit.\n";
@@ -321,6 +350,9 @@ void reset_entities(){
         ghosts[i].chaseMode = false;
         ghosts[i].chaseTimer = 0;
         ghosts[i].sprite.setTexture(ghosts[i].text);
+        ghosts[i].speed = 1.8;
+        ghosts[i].isFast = false;
+        ghosts[i].fast_timer = 0;
     }
     if(pacman.lives == 0){
         pacman.lives = 3;
@@ -329,9 +361,14 @@ void reset_entities(){
             lives[i].setTexture(Life);
         }
         maze.repopulate_maze();
+        generationTime = 0;
+        cherriesEaten = false;    
     }
     deathFinished = false;
     hit = false;
+    //generationTime = 0;
+    //cherriesEaten = false;
+    
 }
 
 void* pacmanthread(void*){
@@ -340,16 +377,16 @@ void* pacmanthread(void*){
             pacman.move(pressed_dir,maze,1);
             pactimer = 0;
             if(hit == false){
-            int px = pacman.x/25;
-            int py = pacman.y/25;
-            pthread_mutex_lock(&checkCollision);
-            if (maze[py][px] == 2){
+                int px = pacman.x/25;
+                int py = pacman.y/25;
+                pthread_mutex_lock(&checkCollision);
+                if (maze[py][px] == 2){
                     pacman.score += 1;
                     maze[py][px] = 1;
                     score_int.setString(to_string(pacman.score));
                 }
-            pthread_mutex_unlock(&checkCollision);
-            
+                pthread_mutex_unlock(&checkCollision);
+                
             }
         }
     }
@@ -361,6 +398,7 @@ int main(){
     sem_init(&space,0,0);
     sem_init(&full, 0, 4);
     sem_init(&mutex, 0, 1);
+    sem_init(&fast,0,1);
 
     scared.loadFromFile("./Sprites/Scared.png");
     eaten_texture.loadFromFile("./Sprites/Eaten.png");
@@ -428,6 +466,9 @@ int main(){
             lightening.timer += time;
             lightening.upDateAnimation();
         }
+        if(cherriesEaten == true){
+            generationTime += time;
+        }
         for(int i = 0;i<ghosts.size();i++){
             if(appeared){
                 ghosts[i].timer += time;
@@ -435,6 +476,9 @@ int main(){
                 ghosts[i].chaseTimer += time;
                 if(ghosts[i].isScared && ghosts[i].scared_timer >= 0){
                     ghosts[i].scared_timer -= time;
+                }
+                if(ghosts[i].isFast == true && ghosts[i].fast_timer <= 5){
+                    ghosts[i].fast_timer += time;
                 }
                 clyde_timer += time;
             }
@@ -469,14 +513,48 @@ int main(){
                         pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
                     }
                 }
+                
+                
+                if(maze[8][7] == 7 && maze[8][15] == 7){
+                    cherriesEaten = false;
+                    generationTime = 0;
+                }
+                if(cherriesEaten && generationTime > 10){
+                    sem_wait(&fast);
+                    if(maze[8][7] == 7 &&  maze[8][15] != 7){
+                        maze[8][15] = 7;
+                        cherriesEaten = false; 
+                        generationTime = 0;
+                    }
+                    else if(maze[8][7] != 7 &&  maze[8][15] == 7){
+                        maze[8][7] = 7;
+                        generationTime = 0;
+                        cherriesEaten = false;
+                    }
+                    else if(maze[8][7] != 7 &&  maze[8][15] != 7){
+                        int x = rand()  % 2;
+                        if(x == 1){
+                            maze[8][7] = 7;
+                        } 
+                        else if(x == 0){
+                            maze[8][15] = 7;
+                        }
+                        generationTime = 0;
+                        cherriesEaten = false;
+                    }
+                    sem_post(&fast);
+                }
+
                 for (int i = 0; i < 2; i++) {
-                    
-                    window.draw(keys[i]);
-                    window.draw(exitPermits[i]);
+                    if (kVis[i])
+                        window.draw(keys[i]);
+                    if (eVis[i])
+                        window.draw(exitPermits[i]);
                 }
                 if(deathFinished == true){
                     reset_entities();
                 }
+                
                 for(int i = 0;i<3;i++){
                     window.draw(lives[i]);
                 }

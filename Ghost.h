@@ -25,6 +25,8 @@ class Ghost{
     bool hasEscaped;
     bool isScared;
     bool prev_hiding_point;
+    bool isFast;
+    float fast_timer;
     float scared_timer;
     bool chaseMode;
     float speed;
@@ -38,7 +40,6 @@ class Ghost{
         this->name = name;
         string path = "./Sprites/" + name + ".png";
         text.loadFromFile(path);
-        
         sprite.setTexture(text);
         sprite.setTextureRect(sf :: IntRect(25*4,0,25,25));
         curr_frame = 0;
@@ -52,6 +53,8 @@ class Ghost{
         timer = 0;
         curr_frame = 4;
         chaseTimer = 0;
+        fast_timer = 0;
+        isFast = false;
         if(name == "Blinky"){
             spawn_col = 11;
             spawn_row = 11;

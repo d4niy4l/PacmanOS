@@ -15,11 +15,12 @@ pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkCollision = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkPellet = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkSuper = PTHREAD_MUTEX_INITIALIZER;
-
+pthread_mutex_t fastGhost = PTHREAD_MUTEX_INITIALIZER;
 // SEMAPHORES
 sem_t space;
 sem_t full;
 sem_t mutex;
+sem_t fast;
 sem_t noEat;
 
 //  SEMAPHORES
@@ -64,9 +65,12 @@ char pressed_dir;
 float timer;
 
 bool appeared = false;
+bool fruitEaten = false;
 float pactimer = 0;
 float clyde_timer = 0;
 bool clyde_psudoscatter = false;
 array<float, 4> ghosttimers;
 bool pacAte = false; //boolean for lightning
+bool cherriesEaten = false;
+float generationTime = 0;
 Animation lightening = Animation("./Sprites/Lightning.png", 0.05,4,2);
