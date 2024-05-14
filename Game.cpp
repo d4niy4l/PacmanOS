@@ -10,8 +10,10 @@
 #include "GhostFunctions.h"
 using namespace std;
 
-
-
+//PRODUCER CONSUMER THREAD TIMERS
+int producer_timer = 0;
+int consumer_timer = 0;
+float pellet_timer = 0;
 //THREAD FUNCTION PROTOTYPES
 void* manageGhosts(void* singleGhostArgs);
 
@@ -65,14 +67,92 @@ void* ui_thread(void*){
     pthread_exit(NULL);
 }
 
+void* pelletProducer(void*){
+    sf :: Clock clock;
+    srand(time(0));
+    vector<pair<int, int>> cords = {{1, 1}, {1, maze[0].size()-2}, {maze.size()-2, 1}, {maze.size()-2, maze[0].size()-2}};
 
+    while(true){
+            float time = clock.getElapsedTime().asSeconds();
+            clock.restart();
+       // if(producer_timer > 0.014){
+            producer_timer = 0;
+            pellet_timer += time;
+            int index = rand() % 4;
+            if(maze[cords[index].first][cords[index].second] == 3){
+                continue;
+            }
+            if(pellet_timer > PELLETPRODUCEINTERVAL){
+                sem_wait(&space);
+                sem_wait(&mutex);
+                int row = cords[index].first;
+                int col = cords[index].second;
+                pellet_timer = 0;
+                pthread_mutex_lock(&checkPellet);
+                maze[row][col] = 3;
+                pthread_mutex_unlock(&checkPellet);
+                cout<<"spawned\n";
+                sem_post(&mutex);
+                sem_post(&full);
+            }
+        }
+   // }
+}
+void* pelletConsumer(void*){
+    vector<pair<int, int>> cords = {{1, 1}, {1, maze[0].size()-2}, {maze.size()-2, 1}, {maze.size()-2, maze[0].size()-2}};
+    while(true){
+            pthread_mutex_lock(&readincMutex);
+            readcount += 1;
+            if(readcount == 1){
+                pthread_mutex_lock(&readWriteCords);
+            }
+            pthread_mutex_unlock(&readincMutex);
+            int px = pacman.x/25;
+            int py = pacman.y/25;
+            pthread_mutex_lock(&readincMutex);
+            readcount -= 1;
+            if(readcount == 0){
+                pthread_mutex_unlock(&readWriteCords);
+            }
+            pthread_mutex_unlock(&readincMutex);
+            pthread_mutex_lock(&checkPellet);
+            if(maze[py][px] == 3 && pacman.super == false){
+                sem_wait(&full);
+                sem_wait(&mutex);
+                pacman.super = true;
+                pacAte = true;
+                pellet_timer = 0;
+                if(px == 1 && py == maze.size() - 2){
+                    lightening.setAnimationPosition(25 + maze_offset_x, -25);
+                }
+                else if (px == 1 && py == 1){
+                    lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
+                }
+                else if(px == maze[0].size() - 2 && py == 1){
+                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
+                }
+                else if (px == maze[0].size() - 2 && py == maze.size() - 2){
+                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
+                }
+                for(int i = 0;i<4;i++){
+                    ghosts[i].isScared = true;
+                    ghosts[i].toggle_sprite();
+                    ghosts[i].timer = 10;
+                }
+                maze[py][px] = 1;
+                sem_post(&mutex);
+                sem_post(&space);
+            }
+            pthread_mutex_unlock(&checkPellet);
+    }
+}
 
 void* manageGhosts(void* singleGhostArgs) {
     Ghost* g = (Ghost*)singleGhostArgs;
     srand(time(0));
     while (gameOver == false) {
         //pthread_mutex_lock(&gameOverMutex);
-        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false && pacAte == false){
+        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false){
             moveGhost(*g);
             ghosttimers[g->id] = 0;
             if(g->isScared == false){
@@ -93,6 +173,7 @@ void* manageGhosts(void* singleGhostArgs) {
                 g->toggle_sprite();
                 g->chaseMode = true;
                 g->chaseTimer = 0;
+                pacman.super = false;
             }
             pthread_mutex_lock(&checkCollision);
             int px = pacman.x/25;
@@ -114,9 +195,7 @@ void* manageGhosts(void* singleGhostArgs) {
                 pacman.lives--;
                 lives[pacman.lives].setTexture(noLife);            
             }
-            // else if(gx == px && gy == py && hit == false && g->isEaten == false && pacman.lives > 0){
-                            
-            // }
+        
             pthread_mutex_unlock(&checkCollision);
 
         }
@@ -158,7 +237,7 @@ void reset_entities(){
 
 void* pacmanthread(void*){
     while(true){
-    if(pactimer > 0.014 && pacAte == false){
+    if(pactimer > 0.014){
             pacman.move(pressed_dir,maze,1);
             pactimer = 0;
             if(hit == false){
@@ -171,27 +250,7 @@ void* pacmanthread(void*){
                     score_int.setString(to_string(pacman.score));
                 }
             pthread_mutex_unlock(&checkCollision);
-            if(maze[py][px] == 3){
-                pacAte = true;
-                if(px == 1 && py == maze.size() - 2){
-                    lightening.setAnimationPosition(25 + maze_offset_x, -25);
-                }
-                else if (px == 1 && py == 1){
-                    lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
-                }
-                else if(px == maze[0].size() - 2 && py == 1){
-                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
-                }
-                else if (px == maze[0].size() - 2 && py == maze.size() - 2){
-                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
-                }
-                for(int i = 0;i<4;i++){
-                    ghosts[i].isScared = true;
-                    ghosts[i].toggle_sprite();
-                    ghosts[i].timer = 10;
-                }
-                maze[py][px] = 1;
-            }
+            
             }
         }
     }
@@ -199,6 +258,11 @@ void* pacmanthread(void*){
 
 //MAIN LOOP THREAD
 int main(){
+
+    sem_init(&space,0,0);
+    sem_init(&full, 0, 4);
+    sem_init(&mutex, 0, 1);
+
     scared.loadFromFile("./Sprites/Scared.png");
     eaten_texture.loadFromFile("./Sprites/Eaten.png");
     srand(time(0));
@@ -223,6 +287,8 @@ int main(){
     pthread_attr_t pacmanThread_attr;
     pthread_create(&gameThread, &attr,ui_thread,nullptr);
     pthread_create(&pacmanThread, &attr, pacmanthread, nullptr);
+    pthread_create(&consumerThread,&attr, pelletConsumer, nullptr);
+    pthread_create(&producerThread,&attr, pelletProducer, nullptr);
     pthread_attr_destroy(&attr);
 
     //INITIALIZE SFML ELEMENTS
@@ -240,18 +306,19 @@ int main(){
                 window.close();
             }
                 
-            
-        }
+        }            
         window.clear();
         sf::Time eTime = clock.getElapsedTime();
         float time = eTime.asSeconds();
+        //if(maze.descended == true && appeared == true){
+            producer_timer += time;
+            consumer_timer += time;
+        //}
         maze.timer += time;
         pacman.timer += time;
         pactimer += time;
         if(maze.descended == false){
-            maze.laser.timer += time;
-        }
-        if(pacAte == true){
+            maze.laser.timer += time; 
             lightening.timer += time;
             lightening.upDateAnimation();
         }
@@ -275,7 +342,7 @@ int main(){
             for(int i = 0;i<ghosts.size();i++){
                 ghosts[i].draw(window);
             }
-            pacman.draw(window);
+            pacman.draw(window); 
             if(pacAte == true){
                 window.draw(lightening.sprite);
             }

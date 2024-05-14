@@ -330,6 +330,8 @@ void checkAndMove(Ghost& g, char currdir){
 }
 
 
+
+
 void moveGhost(Ghost& g) {
 	pthread_mutex_lock(&readincMutex);
 	readcount += 1;
