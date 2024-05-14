@@ -7,12 +7,12 @@
 //  MUTEXES
 pthread_mutex_t gameOverMutex;
 pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t checkCollision = PTHREAD_MUTEX_INITIALIZER;
 //THREADS
 array<pthread_t,4> ghostThreads;
-pthread_t playerThread;
+pthread_t pacmanThread;
 pthread_t gameThread;
 pthread_t uiThread;
-
 //  PLAYERS
 Pacman pacman;
 array<Ghost,4> ghosts;
@@ -23,10 +23,11 @@ sf :: Font hudFont;
 
 //TEXTURES
 sf :: Texture background_text;
-
+sf :: Texture noLife;
+sf :: Texture Life;
 //SPRITES
 sf :: Sprite background;
-
+array<sf :: Sprite, 3> lives;
 //TEXTS
 sf :: Text score;
 sf :: Text score_int;

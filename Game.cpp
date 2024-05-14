@@ -17,7 +17,12 @@ void* manageGhosts(void* singleGhostArgs);
 
 //UI THREAD
 void* ui_thread(void*){
-
+    noLife.loadFromFile("./Sprites/NoLife.png");
+    Life.loadFromFile("./Sprites/Life.png");
+    for(int i = 0;i<3;i++){
+        lives[i].setTexture(Life);
+        lives[i].setPosition(maze_offset_x + i * 80, 740);
+    }
     background_text.loadFromFile("./Sprites/background.jpg");
     background.setTexture(background_text);
     background.setPosition(0, 37);
@@ -36,39 +41,17 @@ void* ui_thread(void*){
     score_int.setString("0");
     score_int.setScale(0,0);
     while(true){
-        
-        if(pactimer > 0.014 && pacAte == false){
-            pacman.move(pressed_dir,maze,1);
-            pactimer = 0;
-            int px = pacman.x/25;
-            int py = pacman.y/25;
-            if (maze[py][px] == 2){
-                    pacman.score += 1;
-                    maze[py][px] = 1;
-                    score_int.setString(to_string(pacman.score));
-                }
-                if(maze[py][px] == 3){
-                    pacAte = true;
-                    if(px == 1 && py == maze.size() - 2){
-                        lightening.setAnimationPosition(25 + maze_offset_x, -25);
-                    }
-                    else if (px == 1 && py == 1){
-                        lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
-                    }
-                    else if(px == maze[0].size() - 2 && py == 1){
-                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
-                    }
-                    else if (px == maze[0].size() - 2 && py == maze.size() - 2){
-                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
-                    }
-                    for(int i = 0;i<4;i++){
-                        ghosts[i].isScared = true;
-                        ghosts[i].toggle_sprite();
-                        ghosts[i].timer = 10;
-                    }
-                    maze[py][px] = 1;
-                }
+        if(appeared){
+            if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
+                pressed_dir = 'l';   
+            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::D)) 
+                pressed_dir = 'r';
+            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::W))
+                pressed_dir = 'u';
+            else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
+                pressed_dir = 'd';
         }
+        
         if(maze.descended == true  && appeared == false){
             if(score.getScale().x < 1){
                 score.setScale(score.getScale().x + 0.05, score.getScale().y + 0.05);
@@ -97,7 +80,7 @@ void* manageGhosts(void* singleGhostArgs) {
                 pair<int,int> target = get_target(*g);
                 int g_row = target.first;
                 int g_col = target.second;
-                if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
+                if(g->chaseTimer > 10 && dice == 5 && g->chaseMode == true){
                     g->chaseMode = !g->chaseMode;
                     g->chaseTimer = 0;
                 }
@@ -113,9 +96,33 @@ void* manageGhosts(void* singleGhostArgs) {
                 g->chaseMode = true;
                 g->chaseTimer = 0;
             }
-        }
-        //pthread_mutex_unlock(&gameOverMutex);
+            pthread_mutex_lock(&checkCollision);
+            int px = pacman.x/25;
+            int py = pacman.y/25;
+            int gx = g->x/25;
+            int gy = g->y/25;
+            if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 &&  g->isScared == true){
+                g->isEaten = true;
+                g->isScared = false;
+                pacman.score += 25;
+                score_int.setString(to_string(pacman.score));
+                g->toggle_sprite();
+            }
+            else if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 && hit == false&&  g->isEaten == false && pacman.lives > 0){
+                hit = true;
+                pacman.sprite.setTexture(pacman.death_texture);
+                pacman.sprite.setTextureRect(sf :: IntRect(0, 0, pacman.sprite.getTexture()->getSize().x / 8.0, pacman.sprite.getTexture()->getSize().y));
+                pacman.curr_frame_x = 0;
+                pacman.lives--;
+                lives[pacman.lives].setTexture(noLife);            
+            }
+            // else if(gx == px && gy == py && hit == false && g->isEaten == false && pacman.lives > 0){
+                            
+            // }
+            pthread_mutex_unlock(&checkCollision);
 
+        }
+   
     }
     return 0;
 }
@@ -132,12 +139,62 @@ void reset_entities(){
         ghosts[i].y = ghosts[i].spawn_row * 25;
         ghosts[i].sprite.setPosition(ghosts[i].x + maze_offset_x, ghosts[i].y + maze_offset_y);
         ghosts[i].isScared = false;
+        ghosts[i].scared_timer = 10;
         ghosts[i].hasEscaped = false;
         ghosts[i].chaseMode = false;
         ghosts[i].chaseTimer = 0;
+        ghosts[i].sprite.setTexture(ghosts[i].text);
+    }
+    if(pacman.lives == 0){
+        pacman.lives = 3;
+        pacman.score = 0;
+        for(int i = 0;i<3;i++){
+            lives[i].setTexture(Life);
+        }
+        maze.repopulate_maze();
     }
     deathFinished = false;
     hit = false;
+    
+}
+
+void* pacmanthread(void*){
+    while(true){
+    if(pactimer > 0.014 && pacAte == false){
+            pacman.move(pressed_dir,maze,1);
+            pactimer = 0;
+            if(hit == false){
+            int px = pacman.x/25;
+            int py = pacman.y/25;
+            if (maze[py][px] == 2){
+                    pacman.score += 1;
+                    maze[py][px] = 1;
+                    score_int.setString(to_string(pacman.score));
+                }
+                if(maze[py][px] == 3){
+                    pacAte = true;
+                    if(px == 1 && py == maze.size() - 2){
+                        lightening.setAnimationPosition(25 + maze_offset_x, -25);
+                    }
+                    else if (px == 1 && py == 1){
+                        lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
+                    }
+                    else if(px == maze[0].size() - 2 && py == 1){
+                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
+                    }
+                    else if (px == maze[0].size() - 2 && py == maze.size() - 2){
+                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
+                    }
+                    for(int i = 0;i<4;i++){
+                        ghosts[i].isScared = true;
+                        ghosts[i].toggle_sprite();
+                        ghosts[i].timer = 10;
+                    }
+                    maze[py][px] = 1;
+                }
+            }
+        }
+    }
 }
 
 //MAIN LOOP THREAD
@@ -150,21 +207,23 @@ int main(){
     ghosts[2].initialize("Inky");
     ghosts[3].initialize("Clyde");    
     pacman.sprite.setScale(0,0);
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     for(int i = 0;i<4;i++){
         ghosts[i].sprite.setScale(0,0);
         ghosttimers[i] = 0;
     }
     for (int i = 0; i < ghostThreads.size(); i++) {
-        if (pthread_create(&ghostThreads[i], NULL, manageGhosts ,&ghosts[i]) != 0) {
+        if (pthread_create(&ghostThreads[i], &attr, manageGhosts ,&ghosts[i]) != 0) {
             perror("ERROR: Unable to create threads.\n");
             return 1;
         }
     }
-    pthread_attr_t gameThread_attr;
-    pthread_attr_init(&gameThread_attr);
-    pthread_attr_setdetachstate(&gameThread_attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&gameThread, &gameThread_attr,ui_thread,nullptr);
-    pthread_attr_destroy(&gameThread_attr);
+    pthread_attr_t pacmanThread_attr;
+    pthread_create(&gameThread, &attr,ui_thread,nullptr);
+    pthread_create(&pacmanThread, &attr, pacmanthread, nullptr);
+    pthread_attr_destroy(&attr);
 
     //INITIALIZE SFML ELEMENTS
     sf :: Clock clock;
@@ -225,15 +284,6 @@ int main(){
                 pacAte = false;
             }
             if(appeared){
-                
-                if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
-                    pressed_dir = 'l';   
-                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::D)) 
-                    pressed_dir = 'r';
-                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::W))
-                    pressed_dir = 'u';
-                else if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::S))
-                    pressed_dir = 'd';
                 int px = pacman.x/25;
                 int py = pacman.y/25;
                 if(py == 11){
@@ -246,26 +296,14 @@ int main(){
                         pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
                     }
                 }
-                
-                for(int i = 0;i<4;i++){
-                    int gx = ghosts[i].x/25;
-                    int gy = ghosts[i].y/25;
-                    if(gx == px && gy == py && ghosts[i].isScared == true){
-                        ghosts[i].isEaten = true;
-                        ghosts[i].isScared = false;
-                        pacman.score += 25;
-                        score_int.setString(to_string(pacman.score));
-                        ghosts[i].toggle_sprite();
-                    }
-                    else if(gx == px && gy == py && hit == false && ghosts[i].isEaten == false){
-                        hit = true;
-                        pacman.sprite.setTexture(pacman.death_texture);
-                        pacman.sprite.setTextureRect(sf :: IntRect(0, 0, pacman.sprite.getTexture()->getSize().x / 8.0, pacman.sprite.getTexture()->getSize().y));
-                        pacman.curr_frame_x = 0;
-                    }
+                 for(int i = 0;i<4;i++){
+                    
                 }
                 if(deathFinished == true){
                     reset_entities();
+                }
+                for(int i = 0;i<3;i++){
+                    window.draw(lives[i]);
                 }
             }
         }

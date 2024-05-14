@@ -21,6 +21,7 @@ public:
     char dir;
     int curr_frame_x;
     int curr_frame_y;
+    int lives;
     float speed;
     int score;
     int spawn_x;
@@ -47,6 +48,7 @@ public:
         timer = 0;
         dir = ' ';
         spawn_x = 11;
+        lives = 3;
         spawn_y = 14;
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 1.9;

@@ -7,7 +7,7 @@
 using namespace std;
 class Maze{
     public:
-    vector<vector<int>>& maze;
+    vector<vector<int>> maze;
     vector<vector<sf :: Sprite>> sprites;
     sf :: Texture tile_text;   
     sf :: Texture platform_text;
@@ -80,6 +80,15 @@ class Maze{
             }
         }
     }
+
+    void repopulate_maze(){
+        for(int i = 0;i<dungeon.size();i++){
+            for(int j = 0;j<dungeon[i].size();j++){
+                maze[i][j] = dungeon[i][j];
+            }
+        }
+    }
+
     void draw(sf :: RenderWindow& window, float time){
         
         bool descend = false;
