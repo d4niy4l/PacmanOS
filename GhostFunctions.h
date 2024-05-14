@@ -248,35 +248,35 @@ char junctionDecision(Ghost& g){
 			}
 		break;
 		case Down:
-			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall && maze[gridY+1][gridX] != door){ 
 				choice += 'd';
 			}
-			if(gridX >= 0 && maze[gridY][gridX-1] != wall){
+			if(gridX >= 0 && maze[gridY][gridX-1] != wall && maze[gridY][gridX-1] != door){
 				choice += 'l';
 			}
-			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall){
+			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall && maze[gridY][gridX+1] != door){
 				choice += 'r';
 			}
 		break;
 		case Left:
-			if(gridX >= 0 && maze[gridY][gridX-1] != wall){
+			if(gridX >= 0 && maze[gridY][gridX-1] != wall && maze[gridY][gridX-1] != door){
 				choice += 'l';
 			}
-			if(gridY >= 0 && maze[gridY-1][gridX] != wall){
+			if(gridY >= 0 && maze[gridY-1][gridX] != wall && maze[gridY-1][gridX] != door){
 				choice += 'u';
 			}
-			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall && maze[gridY+1][gridX] != door){ 
 				choice += 'd';
 			}
 		break;
 		case Right:
-			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall){
+			if(gridX < maze[0].size() && maze[gridY][gridX+1] != wall && maze[gridY][gridX+1] != door){
 				choice += 'r';
 			}
-			if(gridY >= 0 && maze[gridY-1][gridX] != wall){
+			if(gridY >= 0 && maze[gridY-1][gridX] != wall && maze[gridY-1][gridX] != door){
 				choice += 'u';
 			}
-			if(gridY < maze.size() && maze[gridY+1][gridX] != wall){ 
+			if(gridY < maze.size() && maze[gridY+1][gridX] != wall && maze[gridY+1][gridX] != door){ 
 				choice += 'd';
 			}
 		break;
@@ -365,6 +365,7 @@ void moveGhost(Ghost& g) {
 		if(gridRow == (int)g.y/25 && gridCol == (int)g.x/25){
 			if(g.isEaten == true){
 				g.isEaten = false;
+				g.hasEscaped = false;
 				g.chaseMode = true;
 				g.toggle_sprite();
 			}

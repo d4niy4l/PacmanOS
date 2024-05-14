@@ -21,6 +21,8 @@ void* manageGhosts(void* singleGhostArgs);
 void* ui_thread(void*){
     noLife.loadFromFile("./Sprites/NoLife.png");
     Life.loadFromFile("./Sprites/Life.png");
+    keytext.loadFromFile("./Sprites/Key.png");
+    cardtext.loadFromFile("./Sprites/Card.png");
     for(int i = 0;i<3;i++){
         lives[i].setTexture(Life);
         lives[i].setPosition(maze_offset_x + i * 80, 740);
@@ -42,10 +44,11 @@ void* ui_thread(void*){
     score_int.setFillColor(color);
     score_int.setString("0");
     score_int.setScale(0,0);
-
-    for (int i = 0; i < 2; i++) {
-        keys[i].setSize(sf::Vector2f(25,25));
-        keys[i].setFillColor(sf::Color::Red);
+    for(int i =0;i<2;i++){
+        keys[i].setTexture(keytext);
+    }
+    for(int i = 0;i<2;i++){
+        exitPermits[i].setTexture(cardtext);
     }
     keys[0].setPosition(9 * 25+  maze_offset_x, 10*25 + maze_offset_y );
     keys[1].setPosition(13 * 25+  maze_offset_x, 10*25 + maze_offset_y );
@@ -54,10 +57,7 @@ void* ui_thread(void*){
     eVis[0] = 1;
     eVis[1] = 1;
 
-    for (int i = 0; i < 2; i++) {
-        exitPermits[i].setSize(sf::Vector2f(25,25));
-        exitPermits[i].setFillColor(sf::Color::Green);
-    }
+   
     exitPermits[0].setPosition(9 * 25+  maze_offset_x, 12*25 + maze_offset_y );
     exitPermits[1].setPosition(13 * 25+  maze_offset_x, 12*25 + maze_offset_y );
 
@@ -212,6 +212,7 @@ void* manageGhosts(void* singleGhostArgs) {
                     pacman.score += 25;
                     score_int.setString(to_string(pacman.score));
                     g->toggle_sprite();
+                     cout<<"pacman "<<" ate ghost "<<g->name<<endl;;    
                 }
                 else if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 && hit == false&&  g->isEaten == false && pacman.lives > 0){
                     hit = true;
@@ -219,7 +220,8 @@ void* manageGhosts(void* singleGhostArgs) {
                     pacman.sprite.setTextureRect(sf :: IntRect(0, 0, pacman.sprite.getTexture()->getSize().x / 8.0, pacman.sprite.getTexture()->getSize().y));
                     pacman.curr_frame_x = 0;
                     pacman.lives--;
-                    lives[pacman.lives].setTexture(noLife);            
+                    lives[pacman.lives].setTexture(noLife);   
+                    cout<<"ghost "<<g->name<<" killed pacman";         
                 }
                 // else if(gx == px && gy == py && hit == false && g->isEaten == false && pacman.lives > 0){
                                 
@@ -394,7 +396,7 @@ void* pacmanthread(void*){
 
 //MAIN LOOP THREAD
 int main(){
-
+    
     sem_init(&space,0,0);
     sem_init(&full, 0, 4);
     sem_init(&mutex, 0, 1);

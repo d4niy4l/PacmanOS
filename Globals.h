@@ -40,8 +40,8 @@ array<Ghost,4> ghosts;
 sf::RenderWindow window;
 
 //  KEY
-sf::RectangleShape keys[2];
-sf::RectangleShape exitPermits[2];
+sf::Sprite keys[2];
+sf::Sprite exitPermits[2];
 int kVis[2]{0};
 int eVis[2]{0};
 
@@ -52,6 +52,8 @@ sf :: Font hudFont;
 sf :: Texture background_text;
 sf :: Texture noLife;
 sf :: Texture Life;
+sf :: Texture keytext;
+sf:: Texture cardtext;
 //SPRITES
 sf :: Sprite background;
 array<sf :: Sprite, 3> lives;
