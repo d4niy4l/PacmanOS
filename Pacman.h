@@ -14,7 +14,7 @@ enum{
 //hit booleans for effects only
 bool hit = false;
 bool deathFinished = false;
-
+float scared_timer = 0;
 
 //mutexes
 pthread_mutex_t readincMutex = PTHREAD_MUTEX_INITIALIZER; //mutex to make sure only one thread increments read count at a single time;
@@ -32,6 +32,7 @@ public:
     int curr_frame_x;
     int curr_frame_y;
     int lives;
+    bool super;
     float speed;
     int score;
     int spawn_x;
@@ -62,6 +63,7 @@ public:
         spawn_y = 14;
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 1.9;
+        super = false;
         score = 0;
     }
     
