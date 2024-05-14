@@ -77,14 +77,12 @@ void* manageGhosts(void* singleGhostArgs) {
             ghosttimers[g->id] = 0;
             if(g->isScared == false){
                 int dice = rand() % 10 + 1;
-                pair<int,int> target = get_target(*g);
-                int g_row = target.first;
-                int g_col = target.second;
-                if(g->chaseTimer > 10 && dice == 5 && g->chaseMode == true){
+   
+                if(g->chaseTimer > 30 && dice == 5 && g->chaseMode == true){
                     g->chaseMode = !g->chaseMode;
                     g->chaseTimer = 0;
                 }
-                else if(g->chaseTimer > 20 && g->chaseMode == false){
+                else if(g->chaseTimer > 5 && g->chaseMode == false){
                     g->chaseMode = !g->chaseMode;
                     g->chaseTimer = 0;
                 }
@@ -166,32 +164,34 @@ void* pacmanthread(void*){
             if(hit == false){
             int px = pacman.x/25;
             int py = pacman.y/25;
+            pthread_mutex_lock(&checkCollision);
             if (maze[py][px] == 2){
                     pacman.score += 1;
                     maze[py][px] = 1;
                     score_int.setString(to_string(pacman.score));
                 }
-                if(maze[py][px] == 3){
-                    pacAte = true;
-                    if(px == 1 && py == maze.size() - 2){
-                        lightening.setAnimationPosition(25 + maze_offset_x, -25);
-                    }
-                    else if (px == 1 && py == 1){
-                        lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
-                    }
-                    else if(px == maze[0].size() - 2 && py == 1){
-                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
-                    }
-                    else if (px == maze[0].size() - 2 && py == maze.size() - 2){
-                        lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
-                    }
-                    for(int i = 0;i<4;i++){
-                        ghosts[i].isScared = true;
-                        ghosts[i].toggle_sprite();
-                        ghosts[i].timer = 10;
-                    }
-                    maze[py][px] = 1;
+            pthread_mutex_unlock(&checkCollision);
+            if(maze[py][px] == 3){
+                pacAte = true;
+                if(px == 1 && py == maze.size() - 2){
+                    lightening.setAnimationPosition(25 + maze_offset_x, -25);
                 }
+                else if (px == 1 && py == 1){
+                    lightening.setAnimationPosition(25 + maze_offset_x, -1 * ((maze.size() - 2) * 25));
+                }
+                else if(px == maze[0].size() - 2 && py == 1){
+                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -1 * ((maze.size() - 2) * 25));
+                }
+                else if (px == maze[0].size() - 2 && py == maze.size() - 2){
+                    lightening.setAnimationPosition(25 + maze_offset_x + (maze[0].size() - 3) * 25, -25);
+                }
+                for(int i = 0;i<4;i++){
+                    ghosts[i].isScared = true;
+                    ghosts[i].toggle_sprite();
+                    ghosts[i].timer = 10;
+                }
+                maze[py][px] = 1;
+            }
             }
         }
     }

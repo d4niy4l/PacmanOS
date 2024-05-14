@@ -8,6 +8,7 @@
 pthread_mutex_t gameOverMutex;
 pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkCollision = PTHREAD_MUTEX_INITIALIZER;
+
 //THREADS
 array<pthread_t,4> ghostThreads;
 pthread_t pacmanThread;

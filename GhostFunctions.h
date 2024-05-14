@@ -96,13 +96,13 @@ pair<int, int> getNearestPath(int currX, int currY) {
   return pair<int, int>(1, 1);
 }
 
-pair<int,int> get_target(Ghost& g){
+pair<int,int> get_target(Ghost& g, int py, int px, char dir){
 	int g_x = g.x/25;
 	int g_y = g.y/25;
     switch(g.id){
         case blinky: //Blinky: Target Block is Pacs position
 			if(g.chaseMode == true){
-				return pair<int,int>((int)pacman.y/25,(int)pacman.x/25);
+				return pair<int,int>(py,px);
 			}
 			else{
 				if(g.scatter_targets.front().first == g_y && g.scatter_targets.front().second == g_x){
@@ -114,24 +114,24 @@ pair<int,int> get_target(Ghost& g){
 			return g.scatter_targets.front();
         case pinky: //Pinky: Target Block is 4 points infront of the direction Pac is facing
 			if(g.chaseMode == true){
-				int y_pos = (int)pacman.y/25;
-				int x_pos = (int)pacman.x/25;
-				if(pacman.dir == 'u'){
+				int y_pos = py;
+				int x_pos = px;
+				if(dir == 'u'){
 					if(y_pos - 4 > 0 && (maze[y_pos-4][x_pos]!=wall && maze[y_pos-4][x_pos] != hole)){
 						y_pos -=4;
 					}
 				}
-				else if(pacman.dir == 'd'){
+				else if(dir == 'd'){
 					if(y_pos + 4 < maze.size() && (maze[y_pos+4][x_pos]!=wall  && maze[y_pos+4][x_pos] != hole)){
 						y_pos += 4;
 					}
 				}
-				else if(pacman.dir == 'l' ){
+				else if(dir == 'l' ){
 					if(x_pos - 4 > 0 && (maze[y_pos][x_pos-4]!=wall && maze[y_pos][x_pos-4] != hole)){
 						x_pos -= 4;
 					}
 				}
-				else if(pacman.dir == 'r'){
+				else if(dir == 'r'){
 					if((x_pos + 4 < maze[0].size())  && (maze[y_pos][x_pos+4]!=wall && maze[y_pos][x_pos+4] != hole)){
 						x_pos += 4;
 					}
@@ -149,20 +149,18 @@ pair<int,int> get_target(Ghost& g){
 
 			//WARNING INKY CHASE MDOE NEEDS FIX, CAUSES SEGMENTATION FAULTS
 			if(g.chaseMode == true){
-				int p_x = pacman.y / 25;
-				int p_y = pacman.x / 25;
-				int y_pos = p_y;
-				int x_pos = p_x;
-				if(pacman.dir == 'u'){
+				int y_pos = py;
+				int x_pos = px;
+				if(dir == 'u'){
 					x_pos -=2;
 				}
-				else if(pacman.dir == 'd'){
+				else if(dir == 'd'){
 					x_pos += 2;
 				}
-				else if(pacman.dir == 'l'){
+				else if(dir == 'l'){
 					y_pos -= 2;
 				}
-				else if(pacman.dir == 'r'){
+				else if(dir == 'r'){
 					y_pos += 2;
 				}
 
@@ -203,8 +201,8 @@ pair<int,int> get_target(Ghost& g){
 			case clyde: //Clyde: Target Block is Pac but goes into scatter mode when he comes near Pac (Lazyboi)
 				if(g.chaseMode == true){
 					/**/
-					int p_x = pacman.x/25;
-					int p_y = pacman.y/25;
+					int p_x = px;
+					int p_y = py;
 					int g_x = g.x/25;
 					int g_y = g.y/25;
 					float d = pow(float(p_x - g_x), 2.0) + pow(float(p_y - g_y), 2.0);
@@ -333,9 +331,22 @@ void checkAndMove(Ghost& g, char currdir){
 
 
 void moveGhost(Ghost& g) {
+	pthread_mutex_lock(&readincMutex);
+	readcount += 1;
+	if(readcount == 1){
+		pthread_mutex_lock(&readWriteCords);
+	}
+	pthread_mutex_unlock(&readincMutex);
 	int px = pacman.x/25;
 	int py = pacman.y/25;
-	pair<int,int> target = get_target(g);
+	char dir = pacman.dir;
+	pthread_mutex_lock(&readincMutex);
+	readcount -= 1;
+	if(readcount == 0){
+		pthread_mutex_unlock(&readWriteCords);
+	}
+	pthread_mutex_unlock(&readincMutex);
+	pair<int,int> target = get_target(g,py,px,dir);
 	int gridRow = target.first;
 	int gridCol = target.second;
 	char currdir; 
