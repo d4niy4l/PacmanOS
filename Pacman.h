@@ -10,8 +10,18 @@ enum{
     inky = 2,
     clyde = 3,
 };
+
+//hit booleans for effects only
 bool hit = false;
 bool deathFinished = false;
+
+
+//mutexes
+pthread_mutex_t readincMutex = PTHREAD_MUTEX_INITIALIZER; //mutex to make sure only one thread increments read count at a single time;
+pthread_mutex_t readWriteCords = PTHREAD_MUTEX_INITIALIZER; //mutex to make sure either read or write operation happens in critical section which is the coordinates of pacman
+
+int readcount = 0; //global variable to see the number of processes reading the program
+
 class Pacman{
 public:
     float x;
@@ -21,6 +31,7 @@ public:
     char dir;
     int curr_frame_x;
     int curr_frame_y;
+    int lives;
     float speed;
     int score;
     int spawn_x;
@@ -47,6 +58,7 @@ public:
         timer = 0;
         dir = ' ';
         spawn_x = 11;
+        lives = 3;
         spawn_y = 14;
         sprite.setPosition(x + maze_offset_x, y + maze_offset_y);
         speed = 1.9;
@@ -59,6 +71,7 @@ public:
             move_mouth();
             return;
         }
+        pthread_mutex_lock(&readWriteCords); //locking when pacman writes new cords
         int gridRow = int((y) / 25);
         int gridCol = int((x) / 25);
         int gridX = gridCol * 25;
@@ -116,6 +129,7 @@ public:
             break;
         }
         dir = curr_dir ;
+        pthread_mutex_unlock(&readWriteCords);
     }
 
     void draw(sf :: RenderWindow& window){
