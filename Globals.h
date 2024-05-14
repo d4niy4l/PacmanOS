@@ -15,6 +15,7 @@ pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkCollision = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkPellet = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkSuper = PTHREAD_MUTEX_INITIALIZER;
+
 // SEMAPHORES
 sem_t space;
 sem_t full;
@@ -40,6 +41,8 @@ sf::RenderWindow window;
 //  KEY
 sf::RectangleShape keys[2];
 sf::RectangleShape exitPermits[2];
+int kVis[2]{0};
+int eVis[2]{0};
 
 //FONTS
 sf :: Font hudFont;

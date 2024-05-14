@@ -115,6 +115,7 @@ void* pelletProducer(void*){
         }
    // }
 }
+
 void* pelletConsumer(void*){
     vector<pair<int, int>> cords = {{1, 1}, {1, maze[0].size()-2}, {maze.size()-2, 1}, {maze.size()-2, maze[0].size()-2}};
     while(true){
@@ -331,7 +332,6 @@ void reset_entities(){
     }
     deathFinished = false;
     hit = false;
-    
 }
 
 void* pacmanthread(void*){
@@ -470,6 +470,7 @@ int main(){
                     }
                 }
                 for (int i = 0; i < 2; i++) {
+                    
                     window.draw(keys[i]);
                     window.draw(exitPermits[i]);
                 }
@@ -504,6 +505,13 @@ int main(){
         window.display();
     }
     gameOver = true; 
+    sem_destroy(&space);
+    sem_destroy(&full);
+    sem_destroy(&mutex);
+    sem_destroy(&key[0]);
+    sem_destroy(&key[1]);
+    sem_destroy(&exitPermit[0]);
+    sem_destroy(&exitPermit[1]);
 
     return 0;
 }
