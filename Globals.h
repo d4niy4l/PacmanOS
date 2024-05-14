@@ -18,6 +18,9 @@ Pacman pacman;
 array<Ghost,4> ghosts;
 sf::RenderWindow window;
 
+//  KEY
+sf::RectangleShape keys[2];
+
 //FONTS
 sf :: Font hudFont;
 

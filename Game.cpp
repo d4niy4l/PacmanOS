@@ -35,6 +35,14 @@ void* ui_thread(void*){
     score_int.setFillColor(color);
     score_int.setString("0");
     score_int.setScale(0,0);
+
+    for (int i = 0; i < 2; i++) {
+        keys[i].setSize(sf::Vector2f(25,25));
+        keys[i].setFillColor(sf::Color::Red);
+    }
+    keys[0].setPosition(9 * 25+  maze_offset_x, 10*25 + maze_offset_y );
+    keys[1].setPosition(13 * 25+  maze_offset_x, 10*25 + maze_offset_y );
+
     while(true){
         
         if(pactimer > 0.014 && pacAte == false){
@@ -89,30 +97,35 @@ void* manageGhosts(void* singleGhostArgs) {
     srand(time(0));
     while (gameOver == false) {
         //pthread_mutex_lock(&gameOverMutex);
-        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false && pacAte == false){
-            moveGhost(*g);
+        if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false && pacAte == false){    
+            if (g->hasEscaped == true) {                
+                moveGhost(*g);
+                ghosttimers[g->id] = 0;
+                if(g->isScared == false){
+                    int dice = rand() % 10 + 1;
+                    pair<int,int> target = get_target(*g);
+                    int g_row = target.first;
+                    int g_col = target.second;
+                    if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
+                        g->chaseMode = !g->chaseMode;
+                        g->chaseTimer = 0;
+                    }
+                    else if(g->chaseTimer > 20 && g->chaseMode == false){
+                        g->chaseMode = !g->chaseMode;
+                        g->chaseTimer = 0;
+                    }
+                }
+                if(g->isScared == true && g->scared_timer <= 0){
+                    g->scared_timer = 0;
+                    g->isScared = false;
+                    g->toggle_sprite();
+                    g->chaseMode = true;
+                    g->chaseTimer = 0;
+                }
+            }
+        }else{
+            
             ghosttimers[g->id] = 0;
-            if(g->isScared == false){
-                int dice = rand() % 10 + 1;
-                pair<int,int> target = get_target(*g);
-                int g_row = target.first;
-                int g_col = target.second;
-                if(g->chaseTimer > 20 && dice == 5 && g->chaseMode == true){
-                    g->chaseMode = !g->chaseMode;
-                    g->chaseTimer = 0;
-                }
-                else if(g->chaseTimer > 20 && g->chaseMode == false){
-                    g->chaseMode = !g->chaseMode;
-                    g->chaseTimer = 0;
-                }
-            }
-            if(g->isScared == true && g->scared_timer <= 0){
-                g->scared_timer = 0;
-                g->isScared = false;
-                g->toggle_sprite();
-                g->chaseMode = true;
-                g->chaseTimer = 0;
-            }
         }
         //pthread_mutex_unlock(&gameOverMutex);
 
@@ -285,6 +298,9 @@ int main(){
             if(completed == true){
                 appeared = true;
             }
+        }
+        for (int i = 0; i < 2; i++) {
+            window.draw(keys[i]);
         }
         window.draw(score);
         window.draw(score_int);
