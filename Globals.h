@@ -3,11 +3,16 @@
 #include "Ghost.h"
 #include "Maze.h"
 #include "pthread.h"
+#include "semaphore.h"
 
 //  MUTEXES
 pthread_mutex_t gameOverMutex;
 pthread_mutex_t check_scared_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t checkCollision = PTHREAD_MUTEX_INITIALIZER;
+
+//  SEMAPHORES
+sem_t key[2];
+sem_t exitPermit[2];
 
 //THREADS
 array<pthread_t,4> ghostThreads;
@@ -21,6 +26,7 @@ sf::RenderWindow window;
 
 //  KEY
 sf::RectangleShape keys[2];
+sf::RectangleShape exitPermits[2];
 
 //FONTS
 sf :: Font hudFont;

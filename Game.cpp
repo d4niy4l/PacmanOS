@@ -48,6 +48,15 @@ void* ui_thread(void*){
     keys[0].setPosition(9 * 25+  maze_offset_x, 10*25 + maze_offset_y );
     keys[1].setPosition(13 * 25+  maze_offset_x, 10*25 + maze_offset_y );
 
+
+    for (int i = 0; i < 2; i++) {
+        exitPermits[i].setSize(sf::Vector2f(25,25));
+        exitPermits[i].setFillColor(sf::Color::Green);
+    }
+    exitPermits[0].setPosition(9 * 25+  maze_offset_x, 12*25 + maze_offset_y );
+    exitPermits[1].setPosition(13 * 25+  maze_offset_x, 12*25 + maze_offset_y );
+
+
     while(true){
         if(appeared){
             if (sf :: Keyboard::isKeyPressed(sf :: Keyboard::A))
@@ -81,52 +90,132 @@ void* manageGhosts(void* singleGhostArgs) {
     while (gameOver == false) {
         //pthread_mutex_lock(&gameOverMutex);
         if (appeared == true && ghosttimers[g->id] > 0.014 && hit == false && pacAte == false){
-            moveGhost(*g);
-            ghosttimers[g->id] = 0;
-            if(g->isScared == false){
-                int dice = rand() % 10 + 1;
-   
-                if(g->chaseTimer > 30 && dice == 5 && g->chaseMode == true){
-                    g->chaseMode = !g->chaseMode;
+            
+            if (g->hasEscaped == true) {
+                moveGhost(*g);
+                ghosttimers[g->id] = 0;
+                if(g->isScared == false){
+                    int dice = rand() % 10 + 1;
+    
+                    if(g->chaseTimer > 30 && dice == 5 && g->chaseMode == true){
+                        g->chaseMode = !g->chaseMode;
+                        g->chaseTimer = 0;
+                    }
+                    else if(g->chaseTimer > 5 && g->chaseMode == false){
+                        g->chaseMode = !g->chaseMode;
+                        g->chaseTimer = 0;
+                    }
+                }
+                if(g->isScared == true && g->scared_timer <= 0){
+                    g->scared_timer = 0;
+                    g->isScared = false;
+                    g->toggle_sprite();
+                    g->chaseMode = true;
                     g->chaseTimer = 0;
                 }
-                else if(g->chaseTimer > 5 && g->chaseMode == false){
-                    g->chaseMode = !g->chaseMode;
-                    g->chaseTimer = 0;
+                pthread_mutex_lock(&checkCollision);
+                int px = pacman.x/25;
+                int py = pacman.y/25;
+                int gx = g->x/25;
+                int gy = g->y/25;
+                if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 &&  g->isScared == true){
+                    g->isEaten = true;
+                    g->isScared = false;
+                    pacman.score += 25;
+                    score_int.setString(to_string(pacman.score));
+                    g->toggle_sprite();
                 }
-            }
-            if(g->isScared == true && g->scared_timer <= 0){
-                g->scared_timer = 0;
-                g->isScared = false;
-                g->toggle_sprite();
-                g->chaseMode = true;
-                g->chaseTimer = 0;
-            }
-            pthread_mutex_lock(&checkCollision);
-            int px = pacman.x/25;
-            int py = pacman.y/25;
-            int gx = g->x/25;
-            int gy = g->y/25;
-            if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 &&  g->isScared == true){
-                g->isEaten = true;
-                g->isScared = false;
-                pacman.score += 25;
-                score_int.setString(to_string(pacman.score));
-                g->toggle_sprite();
-            }
-            else if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 && hit == false&&  g->isEaten == false && pacman.lives > 0){
-                hit = true;
-                pacman.sprite.setTexture(pacman.death_texture);
-                pacman.sprite.setTextureRect(sf :: IntRect(0, 0, pacman.sprite.getTexture()->getSize().x / 8.0, pacman.sprite.getTexture()->getSize().y));
-                pacman.curr_frame_x = 0;
-                pacman.lives--;
-                lives[pacman.lives].setTexture(noLife);            
-            }
-            // else if(gx == px && gy == py && hit == false && g->isEaten == false && pacman.lives > 0){
-                            
-            // }
-            pthread_mutex_unlock(&checkCollision);
+                else if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 && hit == false&&  g->isEaten == false && pacman.lives > 0){
+                    hit = true;
+                    pacman.sprite.setTexture(pacman.death_texture);
+                    pacman.sprite.setTextureRect(sf :: IntRect(0, 0, pacman.sprite.getTexture()->getSize().x / 8.0, pacman.sprite.getTexture()->getSize().y));
+                    pacman.curr_frame_x = 0;
+                    pacman.lives--;
+                    lives[pacman.lives].setTexture(noLife);            
+                }
+                // else if(gx == px && gy == py && hit == false && g->isEaten == false && pacman.lives > 0){
+                                
+                // }
+                pthread_mutex_unlock(&checkCollision);
+            }else{
+                
+                //  2 KEYS => (0,1) WILL BE PICKED BASED ON GHOST'S ID
+                int keyIdx = g->id % 2;
 
+                //  WAIT FOR KEY
+                if (sem_wait(&key[keyIdx]) !=  0) {
+                    cout << "Ghost " << g->name << "got unexpected error waiting for key.\n";
+                }
+                
+                cout << "Ghost " << g->name <<" has acquired the key " << keyIdx << endl;
+                
+                int y = (keys[keyIdx].getPosition().y - maze_offset_y) /25;
+                int x = (keys[keyIdx].getPosition().x - maze_offset_x) /25;
+                //  cout << g->name << " " << x << " " << y << endl;
+                int gx = g->y/25;
+                int gy = g->x/25;
+                //  GO AND COLLECT THE KEY
+                int collision = 0;
+                float kx = keys[keyIdx].getPosition().x - maze_offset_x;
+                float ky = keys[keyIdx].getPosition().y - maze_offset_y;
+                while (!collision) {
+                    if (ghosttimers[g->id] > 0.014) {
+                        ghosttimers[g->id] = 0;
+                        string dir = getShortestPath(gx,gy,y,x); 
+                        
+                        checkAndMove(*g, dir[0]);
+                        if (abs(kx - g->x) < 25 && abs(ky-g->y) < 20) {
+                            collision++;
+                            cout << "Ghost "<< g->name << " got the key. \n";
+                        }
+                        gx = g->y/25;
+                        gy = g->x/25;
+                    }
+                }
+                
+
+                //  NOW WAIT FOR PERMIT
+                if (sem_wait(&exitPermit[keyIdx]) !=  0) {
+                    cout << "Ghost " << g->name << "got unexpected error waiting for exit permit.\n";
+                }
+                
+                cout << "Ghost " << g->name <<" has acquired the exit permit" << keyIdx << endl;
+                
+                int permitIdx = keyIdx;
+                y = (exitPermits[permitIdx].getPosition().y - maze_offset_y) /25;
+                x = (exitPermits[permitIdx].getPosition().x - maze_offset_x) /25;
+                gx = g->y/25;
+                gy = g->x/25;
+                collision = 0;
+                kx = exitPermits[permitIdx].getPosition().x - maze_offset_x;
+                ky = exitPermits[permitIdx].getPosition().y - maze_offset_y;
+                //cout << g->name << " Permit " <<  " " << x << " " << y << endl;
+                while (!collision) {
+                    if (ghosttimers[g->id] > 0.014) {
+                        ghosttimers[g->id] = 0;
+                        string dir = getShortestPath(gx,gy,y,x); 
+                        checkAndMove(*g, dir[0]);
+                        if (abs(kx - g->x) < 20 && abs(ky-g->y) < 20) {
+                            collision++;
+                            cout << "Ghost "<< g->name << " got the permit. \n";
+                        }
+                        gx = g->y/25;
+                        gy = g->x/25;
+                    }
+                }
+                
+                
+                g->hasEscaped = true;
+                cout << "Ghost " << g->name << " has escaped.\n";
+                //  RELEASE PERMIT
+                if (sem_post(&exitPermit[keyIdx]) !=  0) {
+                    cout << "Ghost " << g->name << "got unexpected error posting for exit permit.\n";
+                }
+                //  RELEASE KEY
+                if (sem_post(&key[keyIdx]) !=  0) {
+                    cout << "Ghost " << g->name << "got unexpected error posting for key.\n";
+                }
+            }
         }
    
     }
@@ -209,7 +298,14 @@ void* pacmanthread(void*){
 int main(){
     scared.loadFromFile("./Sprites/Scared.png");
     eaten_texture.loadFromFile("./Sprites/Eaten.png");
+    
     srand(time(0));
+    
+    sem_init(&key[0], 0, 1);
+    sem_init(&key[1], 0, 1);
+    sem_init(&exitPermit[0], 0, 1);
+    sem_init(&exitPermit[1], 0, 1);
+    
     ghosts[0].initialize("Blinky");
     ghosts[1].initialize("Pinky");
     ghosts[2].initialize("Inky");
@@ -304,8 +400,9 @@ int main(){
                         pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
                     }
                 }
-                 for(int i = 0;i<4;i++){
-                    
+                for (int i = 0; i < 2; i++) {
+                    window.draw(keys[i]);
+                    window.draw(exitPermits[i]);
                 }
                 if(deathFinished == true){
                     reset_entities();
@@ -332,9 +429,7 @@ int main(){
                 appeared = true;
             }
         }
-        for (int i = 0; i < 2; i++) {
-            window.draw(keys[i]);
-        }
+        
         window.draw(score);
         window.draw(score_int);
         window.display();
