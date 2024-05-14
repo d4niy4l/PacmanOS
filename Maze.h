@@ -15,6 +15,7 @@ class Maze{
     sf :: Texture power_text;
     sf :: Font font;
     sf :: Text text;
+    sf :: Texture cherry;
     float timer;
     float speed;
     bool descended;
@@ -30,6 +31,7 @@ class Maze{
         tile_text.loadFromFile(tile_path);
         pellet_text.loadFromFile("./Sprites/Pellet.png");
         power_text.loadFromFile("./Sprites/Power.png");
+        cherry.loadFromFile("./Sprites/Cherry.png");
         platform_text.loadFromFile(platform_path);
         text.setFont(font);
         text.setString("THE DUNGEON");
@@ -71,6 +73,11 @@ class Maze{
                 }
                 else if(maze[i][j] == 3){
                     sprites[i].push_back(sf :: Sprite(power_text));
+                    sprites[i][j].setOrigin(power_text.getSize().x/2, power_text.getSize().y/2);
+                    sprites[i][j].setPosition(j * 25 + maze_offset_x + 12.5, i* 25 + maze_offset_y + 12.5);
+                }
+                else if(maze[i][j] == 7){
+                    sprites[i].push_back(sf :: Sprite(cherry));
                     sprites[i][j].setOrigin(power_text.getSize().x/2, power_text.getSize().y/2);
                     sprites[i][j].setPosition(j * 25 + maze_offset_x + 12.5, i* 25 + maze_offset_y + 12.5);
                 }

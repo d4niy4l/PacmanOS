@@ -138,6 +138,9 @@ void* pelletConsumer(void*){
                     ghosts[i].isScared = true;
                     ghosts[i].toggle_sprite();
                     ghosts[i].timer = 10;
+                    ghosts[i].speed = 1.8;
+                    ghosts[i].isFast = false;
+                    ghosts[i].fast_timer = 0;
                 }
                 maze[py][px] = 1;
                 sem_post(&mutex);
@@ -185,6 +188,7 @@ void* manageGhosts(void* singleGhostArgs) {
                 g->isScared = false;
                 pacman.score += 25;
                 score_int.setString(to_string(pacman.score));
+
                 g->toggle_sprite();
             }
             else if(abs(pacman.x - g->x) < 20 && abs(pacman.y-g->y) < 20 && hit == false&&  g->isEaten == false && pacman.lives > 0){
@@ -195,9 +199,26 @@ void* manageGhosts(void* singleGhostArgs) {
                 pacman.lives--;
                 lives[pacman.lives].setTexture(noLife);            
             }
-        
             pthread_mutex_unlock(&checkCollision);
-
+            sem_wait(&fast);
+            pthread_mutex_lock(&fastGhost);
+            if(maze[gy][gx] == 7 && (g->id == 0 || g->id == 1) && g->isFast == false && g->isEaten == false){
+                g->speed = 2.5;
+                g->isFast = true;
+                g->fast_timer = 0;
+                maze[gy][gx] = 1;
+                if(cherriesEaten == false){
+                    cherriesEaten = true;
+                    generationTime = 0;
+                }
+            }
+            pthread_mutex_unlock(&fastGhost);
+            sem_post(&fast);
+            if(g->isFast == true && g->fast_timer > 5){
+                g->speed = 1.8;
+                g->isFast = false;
+                g->fast_timer = 0;
+            }
         }
    
     }
@@ -221,6 +242,9 @@ void reset_entities(){
         ghosts[i].chaseMode = false;
         ghosts[i].chaseTimer = 0;
         ghosts[i].sprite.setTexture(ghosts[i].text);
+        ghosts[i].speed = 1.8;
+        ghosts[i].isFast = false;
+        ghosts[i].fast_timer = 0;
     }
     if(pacman.lives == 0){
         pacman.lives = 3;
@@ -232,6 +256,8 @@ void reset_entities(){
     }
     deathFinished = false;
     hit = false;
+    generationTime = 0;
+    cherriesEaten = false;
     
 }
 
@@ -262,6 +288,7 @@ int main(){
     sem_init(&space,0,0);
     sem_init(&full, 0, 4);
     sem_init(&mutex, 0, 1);
+    sem_init(&fast,0,1);
 
     scared.loadFromFile("./Sprites/Scared.png");
     eaten_texture.loadFromFile("./Sprites/Eaten.png");
@@ -322,6 +349,9 @@ int main(){
             lightening.timer += time;
             lightening.upDateAnimation();
         }
+        if(cherriesEaten == true){
+            generationTime += time;
+        }
         for(int i = 0;i<ghosts.size();i++){
             if(appeared){
                 ghosts[i].timer += time;
@@ -329,6 +359,9 @@ int main(){
                 ghosts[i].chaseTimer += time;
                 if(ghosts[i].isScared && ghosts[i].scared_timer >= 0){
                     ghosts[i].scared_timer -= time;
+                }
+                if(ghosts[i].isFast == true && ghosts[i].fast_timer <= 5){
+                    ghosts[i].fast_timer += time;
                 }
                 clyde_timer += time;
             }
@@ -363,12 +396,42 @@ int main(){
                         pacman.sprite.setPosition(pacman.x * 25 + maze_offset_x,pacman.y*25 + maze_offset_y);
                     }
                 }
-                 for(int i = 0;i<4;i++){
-                    
+                
+                
+                if(maze[8][7] == 7 && maze[8][15] == 7){
+                    cherriesEaten = false;
+                    generationTime = 0;
                 }
+                if(cherriesEaten && generationTime > 10){
+                    sem_wait(&fast);
+                    if(maze[8][7] == 7 &&  maze[8][15] != 7){
+                        maze[8][15] = 7;
+                        cherriesEaten = false; 
+                        generationTime = 0;
+                    }
+                    else if(maze[8][7] != 7 &&  maze[8][15] == 7){
+                        maze[8][7] = 7;
+                        generationTime = 0;
+                        cherriesEaten = false;
+                    }
+                    else if(maze[8][7] != 7 &&  maze[8][15] != 7){
+                        int x = rand()  % 2;
+                        if(x == 1){
+                            maze[8][7] = 7;
+                        } 
+                        else if(x == 0){
+                            maze[8][15] = 7;
+                        }
+                        generationTime = 0;
+                        cherriesEaten = false;
+                    }
+                    sem_post(&fast);
+                }
+
                 if(deathFinished == true){
                     reset_entities();
                 }
+                
                 for(int i = 0;i<3;i++){
                     window.draw(lives[i]);
                 }

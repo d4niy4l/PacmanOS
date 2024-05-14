@@ -7,7 +7,8 @@ enum {
     door = 4,
     powr = 3,
     hole = 5,
-    hous = 6
+    hous = 6,
+    sped = 7
 };
 
 const int maze_offset_x = 162;
@@ -21,7 +22,7 @@ std :: vector< std :: vector<int>> dungeon = {
 {wall, food, wall, wall, wall, food, wall, food, wall, wall, wall, wall, wall, wall, wall, food, wall, food, wall, wall, wall, food, wall},
 {wall, food, food, food, food, food, wall, food, food, food, food, wall, food, food, food, food, wall, food, food, food, food, food, wall},
 {wall, wall, wall, wall, wall, food, wall, wall, wall, wall, food, wall, food, wall, wall, wall, wall, food, wall, wall, wall, wall, wall},
-{hole, hole, hole, hole, wall, food, wall, food, food, food, food, food, food, food, food, food, wall, food, wall, hole, hole, hole, hole},
+{hole, hole, hole, hole, wall, food, wall, sped, food, food, food, food, food, food, food, sped, wall, food, wall, hole, hole, hole, hole},
 {hole, hole, hole, hole, wall, food, wall, food, wall, wall, door, door, door, wall, wall, food, wall, food, wall, hole, hole, hole, hole},
 {wall, wall, wall, wall, wall, food, wall, food, wall, hous, hous, hous, hous, hous, wall, food, wall, food, wall, wall, wall, wall, wall},
 {empt, food, food, food, food, food, food, food, wall, hous, hous, hous, hous, hous, wall, food, food, food, food, food, food, food, empt}, // dungeon[11][11]
